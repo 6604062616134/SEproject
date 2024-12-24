@@ -21,6 +21,9 @@ app.use('/users', userRoutes)
 const boardgamesRoutes = require('./src/routes/boardgamesRoutes');
 app.use('/boardgames', boardgamesRoutes);
 
+const categoryRoutes = require('./src/routes/categoryRoutes');
+app.use('/categories', categoryRoutes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
   })
