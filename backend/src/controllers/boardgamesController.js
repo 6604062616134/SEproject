@@ -1,14 +1,13 @@
 const db = require('../db');
-const { get } = require('../routes/categoryRoutes');
 
 const BoardgamesController = {
     async getBoardgamesList(req, res){
         try {
-            const name = req.query.name || '';
-            const level = req.query.level || '';
-            const playerCounts = req.query.playerCounts || '';
-            const borrowedTimes = req.query.borrowedTimes || '';
-            const categoryID = req.query.categoryID || '';
+            const name = req?.query?.name || '';
+            const level = req?.query?.level || '';
+            const playerCounts = req?.query?.playerCounts || '';
+            const borrowedTimes = req?.query?.borrowedTimes || '';
+            const categoryID = req?.query?.categoryID || '';
 
             let where = []; // สร้าง array เพื่อเก็บเงื่อนไข
             let sql = `SELECT * FROM boardgames LEFT JOIN category ON boardgames.categoryID = category.id`; // สร้าง query พร้อม join table category
@@ -72,7 +71,7 @@ const BoardgamesController = {
     async createBoardgame(req, res){
         try {
             const { name } = req.body; //ต้องส่งจากหน้าบ้านมาเป็น object
-            console.log(req.body);
+            //console.log(req.body);
 
             const sql = `INSERT INTO boardgames (name) VALUES (?)`;
             const [{ insertId }] = await db.query(sql, [name]);

@@ -24,6 +24,9 @@ app.use('/boardgames', boardgamesRoutes);
 const categoryRoutes = require('./src/routes/categoryRoutes');
 app.use('/categories', categoryRoutes);
 
+const borrowReturnRoutes = require('./src/routes/borrowReturnRoutes');
+app.use('/br', borrowReturnRoutes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
   })
