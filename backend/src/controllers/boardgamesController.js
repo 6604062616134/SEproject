@@ -2,31 +2,60 @@ const db = require('../db');
 const { get } = require('../routes/categoryRoutes');
 
 const BoardgamesController = {
-    // async getAllBoardgames(req, res){
-    //     try {
-    //         const search = req.query.search || '';
+    async getBoardgamesList(req, res){
+        try {
+            const name = req.query.name || '';
+            const level = req.query.level || '';
+            const playerCounts = req.query.playerCounts || '';
+            const borrowedTimes = req.query.borrowedTimes || '';
+            const categoryID = req.query.categoryID || '';
 
-    //         let sql = `SELECT * FROM boardgames`;
+            let where = []; // สร้าง array เพื่อเก็บเงื่อนไข
+            let sql = `SELECT * FROM boardgames LEFT JOIN category ON boardgames.categoryID = category.id`; // สร้าง query พร้อม join table category
+            let params = [];
 
-    //         if (search) {
-    //             sql_count += ` WHERE name LIKE '%${search}%'`;
-    //         }
+            if (name) {
+                where.push(`boardgames.name LIKE ? `);
+                params.push(`%${name}%`);
+            } else if (level){
+                where.push(`boardgames.level LIKE ?`);
+                params.push(`%${level}%`);
+            } else if (playerCounts){
+                where.push(`boardgames.playerCounts LIKE ?`);
+                params.push(`%${playerCounts}%`);
+            } else if (borrowedTimes){
+                where.push(`boardgames.borrowedTimes LIKE ?`);
+                params.push(`%${borrowedTimes}%`);
+            } else if (categoryID){
+                where.push(`boardgames.categoryID = ?`);
+                params.push(categoryID);
+            }
 
-    //         const [rows] = await db.query(sql);
+            if (where.length > 0) {
+                sql += ` WHERE ${where.join(' AND ')}`;
+            }
 
-    //         res.json({ data: rows, "status": "success" });
+            const [rows] = await db.query(sql, params);
 
-    //     } catch (error) {
-    //         console.error('Error fetching boardgames:', error);
-    //         res.status(500).json({ error: 'Internal server error', "status": "error" });
-    //     }
-    // },
+            if(rows.length === 0){
+                res.status(404).json({ error: 'Boardgame not found', "status": "error" });
+            } else {
+                res.json({ data: rows, "status": "success" });
+            }
+
+        } catch (error) {
+            console.error('Error fetching boardgames:', error);
+            res.status(500).json({ error: 'Internal server error', "status": "error" });
+        }
+
+    },
 
     async getBoardgameById(req, res){
         try {
             const id = req.params.id;
 
-            const [rows] = await db.query('SELECT * FROM boardgames WHERE id = ?', id);
+            const [rows] = await db.query('SELECT boardgames.id , category.name FROM boardgames LEFT JOIN category ON boardgames.categoryID = category.id WHERE boardgames.id = ?', id);
+            console.log(rows);
 
             if (rows.length === 0) {
                 res.status(404).json({ error: 'Boardgame not found', "status": "error" });
@@ -39,85 +68,6 @@ const BoardgamesController = {
             res.status(500).json({ error: 'Internal server error', "status": "error" });
         }
     },
-
-    async getBoardgamesByName(req, res){
-        try {
-            const name = req.params.name;
-
-            const [rows] = await db.query('SELECT * FROM boardgames WHERE name = ?', name);
-
-            if (rows.length === 0) {
-                res.status(404).json({ error: 'Boardgame not found', "status": "error" });
-            } else {
-                res.json({ data: rows[0], "status": "success" });
-            }
-
-        } catch (error) {
-            console.error('Error fetching boardgame:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
-        }
-    },
-
-    async getBoardgameByLevel(req, res){
-        try {
-            const level = req.params.level;
-
-            const [rows] = await db.query('SELECT * FROM boardgames WHERE level = ?', level);
-
-            if (rows.length === 0) {
-                res.status(404).json({ error: 'Boardgame not found', "status": "error" });
-            }
-
-            res.json({ data: rows, "status": "success" });
-
-        } catch (error) {
-            console.error('Error fetching boardgame:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
-        }
-    },
-
-    async getBoardgameByPlayerCounts (req, res){
-        try {
-            const playerCounts = req.params.playerCounts;
-
-            const [rows] = await db.query('SELECT * FROM boardgames WHERE playerCounts = ?', playerCounts);
-
-            if (rows.length === 0) {
-                res.status(404).json({ error: 'Boardgame not found', "status": "error" });
-            }
-
-            res.json({ data: rows, "status": "success" });
-
-        } catch (error) {
-            console.error('Error fetching boardgame:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
-        }
-    },
-
-    async getBoardgameByBorrowedTimes (req, res){
-        try {
-            const borrowedTimes = req.params.borrowedTimes;
-
-            const [rows] = await db.query('SELECT * FROM boardgames WHERE borrowedTimes = ?', borrowedTimes);
-
-            if (rows.length === 0) {
-                res.status(404).json({ error: 'Boardgame not found', "status": "error" });
-            }
-
-            res.json({ data: rows, "status": "success" });
-
-        } catch (error) {
-            console.error('Error fetching boardgame:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
-        }
-    },
-
-    // async getBoardgameByCategory(req, res){
-    //     try {
-    
-    //     }
-    // },
-
 
     async createBoardgame(req, res){
         try {

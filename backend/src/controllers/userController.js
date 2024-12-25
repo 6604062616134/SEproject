@@ -47,8 +47,6 @@ const UserController = {
         try {
             const id = req.params.id;
 
-            console.log("req.user-->>", req.user);
-
             // Optional: ตรวจสอบว่าผู้ใช้ที่ร้องขอเป็นเจ้าของข้อมูลเอง
             if (req.user.id !== parseInt(id)) {
                 return res.status(403).json({ error: 'Forbidden', status: 'error' });

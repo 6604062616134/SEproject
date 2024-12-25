@@ -7,10 +7,10 @@ const { authenticateToken } = require('../middleware/authenticateToken');
 router.get('/:id', authenticateToken, userController.getUserById);
 
 // CRUD routes
-router.get('/', userController.getAllUsers);
-// router.get('/:id', userController.getUserById);
+router.get('', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
 
-router.post('/', userController.createUser);
+router.post('', userController.createUser);
 router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 
