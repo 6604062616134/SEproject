@@ -43,12 +43,16 @@ const BorrowReturnController = {
 
     async createTransaction(req, res){
         try {
-            const { userID, gameID, borrowDate, returnDate } = req.body;
-            // const status = 
-            const created = new Date();
-            const modified = new Date();
+            // //userล็อกอินแล้วเลือกเกมที่จะยืม กดปุ่มยืม เลือกเวลายืม-คืน กด ยืนยัน
+            let boardgame_id = req.body.boardgame_id;
+            let user_id = req.user.id;
 
-            const sql = `INSERT INTO borrowreturn (, created, modified) VALUES (?, ?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO borrowreturn (userID, gameID, borrowing, status, created, modified) VALUES (?, ?, NOW(), ?, NOW(), NOW())`;
+            const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, 'borrowing']);
+
+            const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', insertId);
+
+            res.status(201).json({ data: rows[0], "status": "success" });
 
         } catch (error) {
             console.error('Error creating transaction:', error);

@@ -13,7 +13,17 @@ function Login() {
         },
             { withCredentials: true }
         );
-        console.log(response.data);
+        //console.log(response.data);
+        
+        if(response.data.data.permission === 'admin' && response.data.status === 'success') {
+            window.location.href = '/dashboard';
+            alert('Login successful');
+        } else if (response.data.data.permission === 'user' && response.data.status === 'success') {
+            alert('Login successful');
+            window.location.href = '/ ';
+        } else {
+            alert('Login failed');
+        }
     };
 
     const logout = async () => {

@@ -67,14 +67,14 @@ const UserController = {
     async createUser(req, res) {
         try {
             console.log(req.body);
-            const { name, email, password, permission = 'user' } = req.body;
+            const { name, email, password, permission = 'user', tel, studentID } = req.body;
             const hashedPassword = await bcrypt.hash(password, 10);
             const created = new Date();
             const modified = new Date();
 
-            const sql_params = [name, email, hashedPassword, permission, created, modified];
+            const sql_params = [name, email, hashedPassword, permission, created, modified,tel,studentID];
 
-            await db.query(`INSERT INTO users (name, email, password, permission, created, modified) VALUES (?, ?, ?, ?, ?, ?)`, sql_params);
+            await db.query(`INSERT INTO users (name, email, password, permission, created, modified, tel, studentID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, sql_params);
 
             res.status(201).json({ message: 'User created', "status": "success" });
         } catch (error) {
@@ -144,10 +144,15 @@ const UserController = {
         try {
             const { email, password } = req.body;
             const [rows] = await db.query('SELECT * FROM users WHERE email = ?', email);
+
+            console.log("rows-->>", rows);
+            console.log("email-->>", email);
+            console.log("password-->>", password);
+
             if (rows.length === 0) {
-                return res.status(401).json({ error: 'Invalid email or password' });
+                return res.status(401).json({ error: 'Invalid email or password or do not have an account' });
             }
-            const user = rows[0];
+            const user = rows[0]; // ข้อมูลผู้ใช้ที่เจอจากฐานข้อมูล
             const result = await bcrypt.compare(password, user.password);
 
             if (!result) {
@@ -163,7 +168,13 @@ const UserController = {
                 maxAge: 3600000 // คุกกี้มีอายุ 1 ชั่วโมง (1h * 60m * 60s * 1000ms)
             });
 
-            res.json({ token, "status": "success" });
+            const data = {
+                id: user.id,
+                token : token,
+                permission: user.permission
+            };
+
+            res.json({ data, "status": "success" });
         } catch (error) {
             console.error('Error logging in:', error);
             res.status(500).json({ error: 'Internal server error', "status": "error" });

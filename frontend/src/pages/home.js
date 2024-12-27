@@ -6,18 +6,47 @@ function Home() {
 
     useEffect(() => {
         const fetchBoardgames = async () => {
-            const response = await axios.get('http://localhost:8000/boardgames');
-            setBoardgames(response.data.data);
+            try {
+                const response = await axios.get('http://localhost:8000/boardgames');
+                console.log("API Response:", (response.data.data));
+                let test = response.data.data;
+                console.log("typeof response.data:", typeof response.data.data);
+                setBoardgames(response.data.data);
+            } catch (error) {
+                console.error("Error fetching boardgames:", error);
+                setBoardgames([]);
+            }
         };
         fetchBoardgames();
     }, []);
 
+    const borrowSubmit = async (boardgameId) => {
+        try {
+            let res = await axios.post(
+                'http://localhost:8000/br',
+                { boardgame_id: boardgameId },
+                { withCredentials: true }
+            );
+            console.log(`Borrow request sent for boardgame ID: ${boardgameId}`);
+            console.log("API Response:", res);
+            if(res.data.status == "success"){
+                alert("Borrow request sent successfully");
+            }
+        } catch (error) {
+            console.error("Error submitting borrow request:", error);
+        }
+    };
+
     return (
         <div>
             <h1>Boardgames</h1>
+
             <ul>
-                {boardgames.map((boardgame) => (
-                    <li key={boardgame.id}>{boardgame.name}</li>
+                {boardgames.map((boardgame, idx) => (
+                    <li key={idx} className='my-2'>
+                        <p>{boardgame.boardgame_name}</p>
+                        <button onClick={() => borrowSubmit(boardgame.boardgame_id)} className='bg-red-300 p-1 rounded'>Borrow</button>
+                    </li>
                 ))}
             </ul>
         </div>

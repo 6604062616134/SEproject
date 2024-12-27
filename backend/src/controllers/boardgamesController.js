@@ -10,7 +10,7 @@ const BoardgamesController = {
             const categoryID = req?.query?.categoryID || '';
 
             let where = []; // สร้าง array เพื่อเก็บเงื่อนไข
-            let sql = `SELECT * FROM boardgames LEFT JOIN category ON boardgames.categoryID = category.id`; // สร้าง query พร้อม join table category
+            let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`; // สร้าง query พร้อม join table category
             let params = [];
 
             if (name) {
@@ -33,8 +33,10 @@ const BoardgamesController = {
             if (where.length > 0) {
                 sql += ` WHERE ${where.join(' AND ')}`;
             }
+            console.log("sql:", sql);
 
             const [rows] = await db.query(sql, params);
+            console.log(rows);
 
             if(rows.length === 0){
                 res.status(404).json({ error: 'Boardgame not found', "status": "error" });
