@@ -20,3 +20,43 @@ code {
 body {
   background-color: #ececec; /* เปลี่ยนเป็นสีที่คุณต้องการ */
 }
+
+.btn-custom {
+  background-color: transparent; /* พื้นหลังโปร่งใส */
+  border: 1px solid black; /* ขอบสีดำ */
+  color: black; /* สีตัวอักษร */
+  padding: 8px 15px; /* ระยะห่างภายในปุ่ม */
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  text-decoration: none; /* ไม่มีการขีดเส้นใต้ */
+  display: inline-block; /* แสดงเป็นบล็อกแบบอินไลน์ */
+  font-size: 16px; /* ขนาดตัวอักษร */
+  margin: 4px 2px; /* ระยะห่างภายนอกปุ่ม */
+  cursor: pointer; /* เปลี่ยนเคอร์เซอร์เมื่อ hover */
+  border-radius: 24px; /* ขอบโค้งมน */
+  transition: background-color 0.3s; /* เพิ่มการเปลี่ยนสีพื้นหลังเมื่อ hover */
+}
+
+.btn-custom:hover {
+  background-color: rgb(0, 0, 0); /* สีพื้นหลังเมื่อ hover */
+  color: rgb(255, 255, 255);
+}
+
+.btn-search {
+  background-color: black; /* พื้นหลังโปร่งใส */
+  border: 1px solid black; /* ขอบสีดำ */
+  color: white; /* สีตัวอักษร */
+  padding: 8px 15px; /* ระยะห่างภายในปุ่ม */
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  text-decoration: none; /* ไม่มีการขีดเส้นใต้ */
+  display: inline-block; /* แสดงเป็นบล็อกแบบอินไลน์ */
+  font-size: 16px; /* ขนาดตัวอักษร */
+  margin: 4px 2px; /* ระยะห่างภายนอกปุ่ม */
+  cursor: pointer; /* เปลี่ยนเคอร์เซอร์เมื่อ hover */
+  border-radius: 24px; /* ขอบโค้งมน */
+  transition: background-color 0.3s; /* เพิ่มการเปลี่ยนสีพื้นหลังเมื่อ hover */
+}
+
+.btn-search:hover {
+  background-color: transparent; /* สีพื้นหลังเมื่อ hover */
+  color: rgb(0, 0, 0);
+}

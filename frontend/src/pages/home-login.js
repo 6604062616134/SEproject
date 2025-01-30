@@ -47,7 +47,7 @@ function Homelogin() {
         <div>
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='container mx-auto'>
-                <h1 className='text-2xl font-bold'>HOME</h1>
+                <h1 className='text-4xl font-bold' style={{ position: 'absolute', left: '15%', top: '160px' }}>Find Your Boardgames !</h1>
             </div>
         </div>
     );
