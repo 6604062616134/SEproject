@@ -7,39 +7,25 @@ function Navbar({ isMenuOpen, toggleMenu }) {
     const handleToggle = () => {
         const newCollapsed = !isCollapsed;
         setIsCollapsed(newCollapsed);
-        toggleMenu(newCollapsed); // ใช้ toggleMenu แทน onToggle
+        toggleMenu(newCollapsed);
     };
 
     return (
         <div className="font-sans">
-            <div className="bg-black text-white">
-                <div>
-                    <h1 className="text-white text-2xl font-bold justify-self-center" style={{ position: 'relative', top: '20px' }}>
-                        Boardgames
+            <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between p-5">
+                    <div className='text-center' style = {{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+                        <h1 className="text-white text-2xl font-bold">
+                            Boardgames
+                        </h1>
                         <p className='text-right text-xs'>KMUTNB</p>
-                    </h1>
-                    {/* Hamburger Icon */}
-                    <button
-                        onClick={handleToggle}
-                        className="text-white text-xl" style={{ position: 'relative', top: '-20px', left: '20px' }}
-                    >
-                        {isCollapsed ? '✖' : '☰'}
-                    </button>
+                    </div>
+                    <div className='flex gap-5 pr-5' style={{ position: 'absolute', right: '0' }}>
+                        <NavLink to='/register' target = '_blank' className='hover:underline'>Register</NavLink>
+                        <NavLink to='/login' target = '_blank' className='hover:underline'>Login</NavLink>
+                    </div>
                 </div>
-
-                {/* Menu */}
-                <div
-                    className={`fixed top-50rem left-0 w-1/5 bg-white text-white transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                        } h-[100vh]`}
-                >
-                    <a href="#home" className="block px-6 py-2 text-black hover:bg-black hover:text-white">Home</a>
-                    <a href="#about" className="block px-6 py-2 text-black hover:bg-black hover:text-white">About</a>
-                    <a href="#services" className="block px-6 py-2 text-black hover:bg-black hover:text-white">Services</a>
-                    <a href="#contact" className="block px-6 py-2 text-black hover:bg-black hover:text-white">Contact</a>
-                </div>
-
             </div>
-            {/* <hr style={{ height: '0.5px', backgroundColor: 'black', border: 'none' }} /> */}
         </div>
     );
 }

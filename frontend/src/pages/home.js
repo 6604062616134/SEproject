@@ -48,15 +48,6 @@ function Home() {
             <Navbar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='container mx-auto'>
                 <h1 className='text-2xl font-bold'>HOME</h1>
-                <ul>
-                    {boardgames.map((boardgame, idx) => (
-                        <li key={idx} className='my-2'>
-                            <p>{boardgame.boardgame_name}</p>
-                            <button onClick={() => borrowSubmit(boardgame.boardgame_id)} className='bg-red-300 p-1 rounded'>Borrow</button>
-                        </li>
-                    ))}
-                </ul>
-                <div></div>
             </div>
         </div>
     );
