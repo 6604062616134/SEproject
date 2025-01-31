@@ -33,6 +33,7 @@ body {
   margin: 4px 2px; /* ระยะห่างภายนอกปุ่ม */
   cursor: pointer; /* เปลี่ยนเคอร์เซอร์เมื่อ hover */
   border-radius: 24px; /* ขอบโค้งมน */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s; /* เพิ่มการเปลี่ยนสีพื้นหลังเมื่อ hover */
 }
 
@@ -42,7 +43,7 @@ body {
 }
 
 .btn-search {
-  background-color: black; /* พื้นหลังโปร่งใส */
+  background-color: black;
   border: 1px solid black; /* ขอบสีดำ */
   color: white; /* สีตัวอักษร */
   padding: 8px 15px; /* ระยะห่างภายในปุ่ม */
@@ -53,10 +54,19 @@ body {
   margin: 4px 2px; /* ระยะห่างภายนอกปุ่ม */
   cursor: pointer; /* เปลี่ยนเคอร์เซอร์เมื่อ hover */
   border-radius: 24px; /* ขอบโค้งมน */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s; /* เพิ่มการเปลี่ยนสีพื้นหลังเมื่อ hover */
 }
 
 .btn-search:hover {
   background-color: transparent; /* สีพื้นหลังเมื่อ hover */
   color: rgb(0, 0, 0);
+}
+
+.circular-image {
+  width: 170px; /* กำหนดความกว้างของภาพ */
+  height: 170px; /* กำหนดความสูงของภาพ */
+  border-radius: 50%; /* ทำให้ภาพเป็นวงกลม */
+  object-fit: cover; /* ทำให้ภาพครอบคลุมพื้นที่ทั้งหมด */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* เพิ่มเงาให้กับภาพ */
 }
