@@ -1,7 +1,7 @@
 const db = require('../db');
 
 const BoardgamesController = {
-    async getBoardgamesList(req, res){
+    async getBoardgamesList(req, res) {
         try {
             const name = req.query.name || '';
             const level = req.query.level || '';
@@ -12,24 +12,24 @@ const BoardgamesController = {
             let where = [];
             let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`;
             let params = [];
-            
+
             if (name) {
                 where.push(`a.name LIKE ?`);
                 params.push(`%${name}%`);
             }
-            if (level){
+            if (level) {
                 where.push(`a.level LIKE ?`);
                 params.push(`%${level}%`);
             }
-            if (playerCounts){
+            if (playerCounts) {
                 where.push(`a.playerCounts LIKE ?`);
                 params.push(`%${playerCounts}%`);
             }
-            if (borrowedTimes){
+            if (borrowedTimes) {
                 where.push(`a.borrowedTimes LIKE ?`);
                 params.push(`%${borrowedTimes}%`);
             }
-            if (categoryID){
+            if (categoryID) {
                 where.push(`a.categoryID = ?`);
                 params.push(categoryID);
             }
@@ -42,7 +42,7 @@ const BoardgamesController = {
             const [rows] = await db.query(sql, params);
             console.log(rows);
 
-            if(rows.length === 0){
+            if (rows.length === 0) {
                 res.status(404).json({ error: 'Boardgame not found', "status": "error" });
             } else {
                 res.json({ data: rows, "status": "success" });
@@ -55,7 +55,7 @@ const BoardgamesController = {
 
     },
 
-    async getBoardgameById(req, res){
+    async getBoardgameById(req, res) {
         try {
             const id = req.params.id;
 
@@ -74,7 +74,7 @@ const BoardgamesController = {
         }
     },
 
-    async createBoardgame(req, res){
+    async createBoardgame(req, res) {
         try {
             const { name } = req.body; //ต้องส่งจากหน้าบ้านมาเป็น object
             //console.log(req.body);
@@ -84,14 +84,14 @@ const BoardgamesController = {
 
             const [rows] = await db.query('SELECT * FROM boardgames WHERE id = ?', insertId); // ดึงข้อมูลที่เพิ่งสร้างขึ้นมา
 
-            res.status(201).json({ data: rows[0], "status": "success" }); 
+            res.status(201).json({ data: rows[0], "status": "success" });
         } catch (error) {
             console.error('Error creating boardgame:', error);
             res.status(500).json({ error: 'Internal server error', "status": "error" });
         }
     },
 
-    async updateBoardgame(req, res){
+    async updateBoardgame(req, res) {
         try {
             const id = req.params.id;
             const { name } = req.body;
@@ -121,7 +121,7 @@ const BoardgamesController = {
         }
     },
 
-    async deleteBoardgame(req, res){
+    async deleteBoardgame(req, res) {
         try {
             const id = req.params.id;
 
@@ -136,23 +136,26 @@ const BoardgamesController = {
 
     async getRecommendedBoardgames(req, res) {
         try {
-            const sql = `SELECT a.id as a.name as boardgame_name b.name as category_name 
+            const sql = `SELECT a.id AS categoryID, a.name AS boardgame_name, b.name AS category_name 
                          FROM boardgames a 
-                         LEFT JOIN category b ON a.categoryID = b.id 
+                         LEFT JOIN category b ON a.categoryID = b.id
                          WHERE a.isRecommended = 1`;
+
             const [rows] = await db.query(sql);
-    
+
             if (rows.length === 0) {
-                res.status(404).json({ error: 'No recommended boardgames found', "status": "error" });
-            } else {
-                res.json({ data: rows, "status": "success" });
+                return res.status(404).json({ error: 'No recommended boardgames found', status: "error" });
             }
+
+            res.json({ data: rows, status: "success" });
+            console.log("Recommended boardgames:", rows);
+
         } catch (error) {
             console.error('Error fetching recommended boardgames:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
+            res.status(500).json({ error: 'Internal server error', status: "error" });
         }
     }
+
 }
 
 module.exports = BoardgamesController;
-    

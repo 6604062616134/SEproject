@@ -19,9 +19,10 @@ function Home() {
     const [level, setLevel] = useState('');
     const [players, setPlayers] = useState('');
     const [showRecommended, setShowRecommended] = useState(true);
+    const [recommended, setRecommended] = useState([]);
 
     useEffect(() => {
-        fetchBoardgames();
+        fetchBoardgamesRecommended();
     }, []);
 
     const fetchBoardgames = async (query = '') => {
@@ -144,6 +145,17 @@ function Home() {
         handleCategorySelect(category);
         setShowRecommended(false);
         fetchBoardgames();
+    };
+
+    const fetchBoardgamesRecommended = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/boardgames/recommended');
+            console.log("API Response:", response.data.data);
+            setRecommended(response.data.data);
+        } catch (error) {
+            console.error("Error fetching recommended boardgames:", error);
+            setRecommended([]);
+        }
     };
 
 
@@ -275,7 +287,7 @@ function Home() {
                     <div>
                         {/* การ์ดแสดงข้อมูลบอร์ดเกมที่recommended*/}
                         <div className="grid grid-cols-3 gap-5 mt-5" style={{ position: 'absolute', left: '20%', top: '600px' }}>
-                            {boardgames.map((boardgame) => (
+                            {recommended.map((boardgame) => (
                                 <div key={boardgame.boardgame_id} className="bg-transparent border-black rounded-xl shadow-lg p-3">
                                     <img src={boardgame.image} alt={boardgame.name} className="w-[280px] h-[200px] object-fill rounded-lg" />
                                     <div className="mt-4 flex flex-col items-end">
