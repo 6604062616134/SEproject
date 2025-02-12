@@ -48,8 +48,10 @@ function Home() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
+        setShowRecommended(false);
         fetchBoardgames();
     };
+
 
     const toggleCategoryDropdown = () => {
         setIsCategoryOpen(!isCategoryOpen);
@@ -140,8 +142,10 @@ function Home() {
 
     const handleCategoryClick = (category) => {
         handleCategorySelect(category);
+        setShowRecommended(false);
         fetchBoardgames();
     };
+
 
     // const borrowSubmit = async (boardgameId) => {
     //     try {
@@ -264,22 +268,20 @@ function Home() {
                             </button>
                             <button onClick={() => handleCategoryClick('Strategy')} className='hover:underline text-xl font-semibold mt-2 bg-transparent border-none p-0'>Strategy games</button>
                         </div>
-                        {showRecommended && (
-                            <p className='text-black text-xl font-semibold' style={{ position: 'absolute', left: '300px', top: '570px' }}>Recommended</p>
-                        )}
-                        <div>
-                        </div>
+                    </div>
+                    <div>
+                        {showRecommended && <h2 className="text-2xl font-semibold" style={{ position: 'absolute', left: '380px', top: '570px' }}>Recommended</h2>}
                     </div>
                     <div>
                         {/* การ์ดแสดงข้อมูลบอร์ดเกมที่recommended*/}
-                        <div className="grid grid-cols-4 gap-5 mt-5" style={{ position: 'absolute', left: '15%', top: '600px' }}>
+                        <div className="grid grid-cols-3 gap-5 mt-5" style={{ position: 'absolute', left: '20%', top: '600px' }}>
                             {boardgames.map((boardgame) => (
                                 <div key={boardgame.boardgame_id} className="bg-transparent border-black rounded-xl shadow-lg p-3">
-                                    <img src={boardgame.image} alt={boardgame.name} className="w-200px h-400px object-cover rounded-lg" />
-                                    <div className="mt-4">
+                                    <img src={boardgame.image} alt={boardgame.name} className="w-[280px] h-[200px] object-fill rounded-lg" />
+                                    <div className="mt-4 flex flex-col items-end">
                                         <p className="text-xl font-semibold">{boardgame.name}</p>
                                         <p className="text-black">{boardgame.description}</p>
-                                        <button className="btn-custom mt-4">Borrow</button>
+                                        <button className="btn-search mt-4">Borrow</button>
                                     </div>
                                 </div>
                             ))}
