@@ -3,30 +3,34 @@ const db = require('../db');
 const BoardgamesController = {
     async getBoardgamesList(req, res){
         try {
-            const name = req?.query?.name || '';
-            const level = req?.query?.level || '';
-            const playerCounts = req?.query?.playerCounts || '';
-            const borrowedTimes = req?.query?.borrowedTimes || '';
-            const categoryID = req?.query?.categoryID || '';
+            const name = req.query.name || '';
+            const level = req.query.level || '';
+            const playerCounts = req.query.playerCounts || '';
+            const borrowedTimes = req.query.borrowedTimes || '';
+            const categoryID = req.query.categoryID || '';
 
-            let where = []; // สร้าง array เพื่อเก็บเงื่อนไข
-            let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`; // สร้าง query พร้อม join table category
+            let where = [];
+            let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`;
             let params = [];
-
+            
             if (name) {
-                where.push(`boardgames.name LIKE ? `);
+                where.push(`a.name LIKE ?`);
                 params.push(`%${name}%`);
-            } else if (level){
-                where.push(`boardgames.level LIKE ?`);
+            }
+            if (level){
+                where.push(`a.level LIKE ?`);
                 params.push(`%${level}%`);
-            } else if (playerCounts){
-                where.push(`boardgames.playerCounts LIKE ?`);
+            }
+            if (playerCounts){
+                where.push(`a.playerCounts LIKE ?`);
                 params.push(`%${playerCounts}%`);
-            } else if (borrowedTimes){
-                where.push(`boardgames.borrowedTimes LIKE ?`);
+            }
+            if (borrowedTimes){
+                where.push(`a.borrowedTimes LIKE ?`);
                 params.push(`%${borrowedTimes}%`);
-            } else if (categoryID){
-                where.push(`boardgames.categoryID = ?`);
+            }
+            if (categoryID){
+                where.push(`a.categoryID = ?`);
                 params.push(categoryID);
             }
 
@@ -126,6 +130,25 @@ const BoardgamesController = {
             res.json({ message: 'Boardgame deleted', "status": "success" });
         } catch (error) {
             console.error('Error deleting boardgame:', error);
+            res.status(500).json({ error: 'Internal server error', "status": "error" });
+        }
+    },
+
+    async getRecommendedBoardgames(req, res) {
+        try {
+            const sql = `SELECT a.id as a.name as boardgame_name b.name as category_name 
+                         FROM boardgames a 
+                         LEFT JOIN category b ON a.categoryID = b.id 
+                         WHERE a.isRecommended = 1`;
+            const [rows] = await db.query(sql);
+    
+            if (rows.length === 0) {
+                res.status(404).json({ error: 'No recommended boardgames found', "status": "error" });
+            } else {
+                res.json({ data: rows, "status": "success" });
+            }
+        } catch (error) {
+            console.error('Error fetching recommended boardgames:', error);
             res.status(500).json({ error: 'Internal server error', "status": "error" });
         }
     }
