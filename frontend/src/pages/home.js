@@ -183,12 +183,12 @@ function Home() {
     return (
         <div>
             <Navbar />
-            <div className='flex justify-center items-center min-h-screen' style={{ position: 'relative', width: '100%', height: '100%', left: '100px', top: '-100px' }}>
+            <div className='flex justify-center items-center min-h-screen' style={{ position: 'relative', width: '100%', height: '100%', top: '-100px' }}>
                 <div className='container mx-auto'>
-                    <h1 className='text-4xl font-bold' style={{ position: 'absolute', left: '15%', top: '160px' }}>Find Your Boardgames !</h1>
+                    <h1 className='text-4xl font-bold' style={{ position: 'absolute', left: '15%', top: '140px' }}>Find Your Boardgames !</h1>
                     {/* search bar */}
-                    <form onSubmit={handleSearchSubmit} className="mt-5 flex items-center gap-4" style={{ position: 'absolute', left: '15%', top: '220px' }}>
-                        <div className="relative">
+                    <form onSubmit={handleSearchSubmit} className="mt-5 flex items-center gap-4" style={{ position: 'absolute', left: '15%', top: '200px', width: '70%' }}>
+                        <div className="relative flex-grow">
                             <FontAwesomeIcon icon={faSearch} className="text-black absolute left-3 top-1/2 transform -translate-y-1/2" />
                             <input
                                 type="text"
@@ -196,8 +196,8 @@ function Home() {
                                 name="search"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-black rounded-3xl p-2 pl-10 bg-transparent"
-                                style={{ borderWidth: '1px', width: '700px' }} // กำหนดความกว้างของช่องอินพุท
+                                className="border border-black rounded-3xl p-2 pl-10 bg-transparent w-full"
+                                style={{ borderWidth: '1px' }}
                             />
                         </div>
                         <div className="flex gap-4">
@@ -255,7 +255,7 @@ function Home() {
                             <button type="submit" className='btn-search'>Search</button>
                         </div>
                     </form>
-                    <div className="mt-10 flex justify-center gap-20" style={{ position: 'absolute', left: '21%', top: '290px' }}>
+                    <div className="mt-10 flex justify-center gap-20" style={{ position: 'absolute', left: '21%', top: '260px' }}>
                         <div className="flex flex-col items-center">
                             <button onClick={() => handleCategoryClick('Party')} className="bg-transparent border-none p-0">
                                 <img src="/images/partygame.jpg" alt="Party games" className="circular-image" />
@@ -282,18 +282,27 @@ function Home() {
                         </div>
                     </div>
                     <div>
-                        {showRecommended && <h2 className="text-2xl font-semibold" style={{ position: 'absolute', left: '380px', top: '570px' }}>Recommended</h2>}
+                        {showRecommended && <h2 className="text-2xl font-semibold" style={{ position: 'absolute', left: '350px', top: '540px' }}>Recommended</h2>}
                     </div>
                     <div>
                         {/* การ์ดแสดงข้อมูลบอร์ดเกมที่recommended*/}
-                        <div className="grid grid-cols-3 gap-5 mt-5" style={{ position: 'absolute', left: '20%', top: '600px' }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5" style={{ position: 'absolute', left: '20%', top: '575px' }}>
                             {recommended.map((boardgame) => (
-                                <div key={boardgame.boardgame_id} className="bg-transparent border-black rounded-xl shadow-lg p-3">
-                                    <img src={boardgame.image} alt={boardgame.name} className="w-[280px] h-[200px] object-fill rounded-lg" />
-                                    <div className="mt-4 flex flex-col items-end">
-                                        <p className="text-xl font-semibold">{boardgame.name}</p>
-                                        <p className="text-black">{boardgame.description}</p>
-                                        <button className="btn-search mt-4">Borrow</button>
+                                <div key={boardgame.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
+                                    <img src={boardgame.imagePath} alt={boardgame.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
+                                    <div className="mt-3">
+                                        <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
+                                        <p className="text-black ml-5">{boardgame.category_name}</p>
+                                        <p className="text-black ml-5">level : {boardgame.level}</p>
+                                        <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
+                                        <div className="flex justify-between gap-4 items-center ml-5 mr-2">
+                                            <div>
+                                                <p className="text-black" style={{marginTop : -14}}>borrowed times : {boardgame.borrowedTimes}</p>
+                                            </div>
+                                            <button className="btn-search" style={{marginTop : -9}}>
+                                                Borrow
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

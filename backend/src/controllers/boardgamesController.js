@@ -136,7 +136,7 @@ const BoardgamesController = {
 
     async getRecommendedBoardgames(req, res) {
         try {
-            const sql = `SELECT a.id AS categoryID, a.name AS boardgame_name, b.name AS category_name 
+            const sql = `SELECT a.id AS boardgame_id, a.name AS boardgame_name, a.level, a.playerCounts, a.borrowedTimes, b.name AS category_name 
                          FROM boardgames a 
                          LEFT JOIN category b ON a.categoryID = b.id
                          WHERE a.isRecommended = 1`;
@@ -147,7 +147,13 @@ const BoardgamesController = {
                 return res.status(404).json({ error: 'No recommended boardgames found', status: "error" });
             }
 
-            res.json({ data: rows, status: "success" });
+            // ใช้ชื่อบอร์ดเกมเพื่อสร้าง path ของรูปภาพ
+            const boardgamesWithImagePaths = rows.map(row => ({
+                ...row,
+                imagePath: `/images/${row.boardgame_name.replace(/\s+/g, '_').toLowerCase()}.jpg`  // ใช้ชื่อ boardgame_name เป็นชื่อไฟล์
+            }));
+
+            res.json({ data: boardgamesWithImagePaths, status: "success" });
             console.log("Recommended boardgames:", rows);
 
         } catch (error) {
