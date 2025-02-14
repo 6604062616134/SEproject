@@ -19,10 +19,13 @@ function Home() {
     const [level, setLevel] = useState('');
     const [players, setPlayers] = useState('');
     const [showRecommended, setShowRecommended] = useState(true);
+    const [showPopular, setShowPopular] = useState(true);
     const [recommended, setRecommended] = useState([]);
+    const [popular, setPopular] = useState([]);
 
     useEffect(() => {
         fetchBoardgamesRecommended();
+        fetchBoardgamesPopular();
     }, []);
 
     const fetchBoardgames = async (query = '') => {
@@ -50,6 +53,7 @@ function Home() {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setShowRecommended(false);
+        setShowPopular(false);
         fetchBoardgames();
     };
 
@@ -144,6 +148,7 @@ function Home() {
     const handleCategoryClick = (category) => {
         handleCategorySelect(category);
         setShowRecommended(false);
+        setShowPopular(false);
         fetchBoardgames();
     };
 
@@ -158,6 +163,16 @@ function Home() {
         }
     };
 
+    const fetchBoardgamesPopular = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/boardgames/popular');
+            console.log("API Response:", response.data.data);
+            setPopular(response.data.data);
+        } catch (error) {
+            console.error("Error fetching popular boardgames:", error);
+            setPopular([]);
+        }
+    };
 
     // const borrowSubmit = async (boardgameId) => {
     //     try {
@@ -297,17 +312,41 @@ function Home() {
                                         <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
                                             <div>
-                                                <p className="text-black" style={{marginTop : -14}}>borrowed times : {boardgame.borrowedTimes}</p>
+                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {boardgame.borrowedTimes}</p>
                                             </div>
-                                            <button className="btn-search" style={{marginTop : -9}}>
+                                            <button className="btn-search" style={{ marginTop: -9 }}>
                                                 Borrow
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             ))}
-
                         </div>
+                    </div>
+                    <div>
+                        {showPopular && <h2 className="text-2xl font-semibold" style={{ position: 'absolute', left: '350px', top: '1430px' }}>Popular</h2>}
+                    </div>
+                    {/* การ์ดแสดงข้อมูลบอร์ดเกมที่popular */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 pb-10" style={{ position: 'absolute', left: '20%', top: '1450px'}}>
+                        {popular.map((boardgame) => (
+                            <div key={boardgame.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px'}}>
+                                <img src={boardgame.imagePath} alt={boardgame.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
+                                <div className="mt-3">
+                                    <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
+                                    <p className="text-black ml-5">{boardgame.category_name}</p>
+                                    <p className="text-black ml-5">level : {boardgame.level}</p>
+                                    <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
+                                    <div className="flex justify-between gap-4 items-center ml-5 mr-2">
+                                        <div>
+                                            <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {boardgame.borrowedTimes}</p>
+                                        </div>
+                                        <button className="btn-search" style={{ marginTop: -9 }}>
+                                            Borrow
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

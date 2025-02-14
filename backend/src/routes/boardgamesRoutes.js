@@ -5,6 +5,7 @@ const BoardgamesController = require('../controllers/boardgamesController');
 //CRUD routes
 router.get('/', BoardgamesController.getBoardgamesList);
 router.get('/recommended', BoardgamesController.getRecommendedBoardgames);
+router.get('/popular', BoardgamesController.getPopularBoardgames);
 // router.get('/:id', BoardgamesController.getBoardgameById);
 
 router.post('', BoardgamesController.createBoardgame);
