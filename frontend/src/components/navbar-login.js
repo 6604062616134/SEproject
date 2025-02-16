@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
@@ -9,12 +9,19 @@ import axios from 'axios';
 
 function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isOpenNoti, setIsOpenNoti] = useState(false);
+    const [hasNewNotification, setHasNewNotification] = useState(true); //red dot
     const navigate = useNavigate();
 
     const handleToggle = () => {
         const newCollapsed = !isCollapsed;
         setIsCollapsed(newCollapsed);
         toggleMenu(newCollapsed);
+    };
+
+    const handleNotificationClick = () => {
+        setIsNotificationOpen((prev) => !prev);
     };
 
     const handleLogout = async () => {
@@ -45,8 +52,29 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                         <p className='text-right text-xs'>KMUTNB</p>
                     </div>
                     <div className='flex items-center gap-4'>
-                        <p className="text-white text-xl font-semibold" >username</p>
-                        <FontAwesomeIcon icon={faBell} className="ml-2 pr-4" />
+                        <p className="text-white text-xl font-semibold">username</p>
+                        <button onClick={handleNotificationClick} className="ml-2 pr-4 cursor-pointer bg-transparent border-none z-10 relative">
+                            <FontAwesomeIcon icon={faBell} />
+                            {hasNewNotification && (
+                                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center"></span>
+                            )}
+                        </button>
+                        {isNotificationOpen && (
+                            <div className="absolute top-16 right-4 bg-white text-black p-4 rounded shadow-lg z-50 w-64">
+                                <h2 className="font-bold text-lg">Notifications</h2>
+                                <ul className="mt-2">
+                                    <li className="border-b py-2">🔔 มีการอัปเดตใหม่ในระบบ</li>
+                                    <li className="border-b py-2">🔔 มีบอร์ดเกมใหม่เข้ามา</li>
+                                    <li className="py-2">🔔 โปรโมชันพิเศษสำหรับสมาชิก</li>
+                                </ul>
+                                <button
+                                    className="mt-2 bg-black text-white w-full py-1 rounded hover:bg-gray-700"
+                                    onClick={handleNotificationClick}
+                                >
+                                    ปิด
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -89,7 +117,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             <FontAwesomeIcon icon={faLine} />
                         </a>
                     </div>
-                    <p className="text-black font-light" style={{ position: 'relative' , top: '310px' , left: '25px'}}>02-555-2000 , 1111</p>
+                    <p className="text-black font-light" style={{ position: 'relative', top: '310px', left: '25px' }}>02-555-2000 , 1111</p>
                 </div>
             </div>
         </div>
