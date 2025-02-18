@@ -27,6 +27,9 @@ app.use('/categories', categoryRoutes);
 const borrowReturnRoutes = require('./src/routes/borrowReturnRoutes');
 app.use('/br', borrowReturnRoutes);
 
+const notificationRoutes = require('./src/routes/notificationRoutes');
+app.use('/notifications', notificationRoutes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
   })

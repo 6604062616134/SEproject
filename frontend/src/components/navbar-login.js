@@ -1,4 +1,4 @@
-import React, { useState,use } from 'react';
+import React, { useState, use } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
@@ -14,6 +14,24 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const [hasNewNotification, setHasNewNotification] = useState(true); //red dot
     const navigate = useNavigate();
 
+    const fetchNotification = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/notifications', { withCredentials: true });
+            console.log(response.data);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await axios.post('http://localhost:8000/logout', {}, { withCredentials: true });
+            navigate('/');
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    };
+
     const handleToggle = () => {
         const newCollapsed = !isCollapsed;
         setIsCollapsed(newCollapsed);
@@ -22,16 +40,14 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
 
     const handleNotificationClick = () => {
         setIsNotificationOpen((prev) => !prev);
+        if (!isOpenNoti) {
+            fetchNotification();
+            setIsOpenNoti(true);
+        }
     };
 
-    const handleLogout = async () => {
-        try {
-            await axios.post('http://localhost:8000/logout', {}, { withCredentials: true });
-            // Redirect to home page after logout
-            navigate('/'); // เปลี่ยนเส้นทางไปยังหน้า home
-        } catch (error) {
-            console.error("Error logging out:", error);
-        }
+    const handleLogout = () => {
+        logout();
     };
 
     return (
@@ -42,13 +58,13 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                         onClick={handleToggle}
                         className="text-white text-xl z-10"
                     >
-                        {isCollapsed ? '✖' : '☰'}
+                        {isCollapsed ? '☰' : '☰'}
                     </button>
                     {/* จัดให้อยู่กลาง */}
                     <div className='text-center'>
-                        <h1 className="text-white text-2xl font-bold">
+                        <NavLink to="/" className="text-white text-2xl font-bold">
                             Boardgames
-                        </h1>
+                        </NavLink>
                         <p className='text-right text-xs'>KMUTNB</p>
                     </div>
                     <div className='flex items-center gap-4'>
@@ -60,12 +76,12 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             )}
                         </button>
                         {isNotificationOpen && (
-                            <div className="absolute top-16 right-4 bg-white text-black p-4 rounded shadow-lg z-50 w-64">
-                                <h2 className="font-bold text-lg">Notifications</h2>
+                            <div className="absolute top-16 right-4 bg-white text-black p-4 rounded shadow-lg z-50 w-64" style={{ borderRadius: '35px' }}>
+                                <h2 className="font-semibold text-lg">Notifications</h2>
                                 <ul className="mt-2">
-                                    <li className="border-b py-2">🔔 มีการอัปเดตใหม่ในระบบ</li>
-                                    <li className="border-b py-2">🔔 มีบอร์ดเกมใหม่เข้ามา</li>
-                                    <li className="py-2">🔔 โปรโมชันพิเศษสำหรับสมาชิก</li>
+                                    <li className="border-b py-2">มีการอัปเดตใหม่ในระบบ</li>
+                                    <li className="border-b py-2">มีบอร์ดเกมใหม่เข้ามา</li>
+                                    <li className="py-2">โปรโมชันพิเศษสำหรับสมาชิก</li>
                                 </ul>
                                 <button
                                     className="mt-2 bg-black text-white w-full py-1 rounded hover:bg-gray-700"
@@ -86,7 +102,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                     <a href="#home" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Home</a>
                     <a href="#about" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Return</a>
                     <a href="#services" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">History</a>
-                    <a onClick={handleLogout} className="block px-6 text-black font-normal hover:underline cursor-pointer" style={{ position: 'relative', top: '315px' }}>Logout <span style={{ textDecoration: 'none' }}>-{'>'}</span></a>
+                    <a onClick={handleLogout} className="block px-6 text-black font-normal hover:underline cursor-pointer z-10" style={{ position: 'relative', top: '315px' }}>Logout <span style={{ textDecoration: 'none' }}>-{'>'}</span></a>
                     <p className="block px-6 text-black font-semibold" style={{ position: 'relative', top: '470px' }}>Contact us</p>
                     <div>
                         <a

@@ -8,11 +8,11 @@ const BoardgamesController = {
             const playerCounts = req.query.playerCounts || '';
             const borrowedTimes = req.query.borrowedTimes || '';
             const categoryID = req.query.categoryID || '';
-
+    
             let where = [];
             let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`;
             let params = [];
-
+    
             if (name) {
                 where.push(`a.name LIKE ?`);
                 params.push(`%${name}%`);
@@ -33,26 +33,30 @@ const BoardgamesController = {
                 where.push(`a.categoryID = ?`);
                 params.push(categoryID);
             }
-
+    
             if (where.length > 0) {
                 sql += ` WHERE ${where.join(' AND ')}`;
             }
             console.log("sql:", sql);
-
+    
             const [rows] = await db.query(sql, params);
             console.log(rows);
-
+    
             if (rows.length === 0) {
                 res.status(404).json({ error: 'Boardgame not found', "status": "error" });
             } else {
-                res.json({ data: rows, "status": "success" });
+                // เพิ่ม imgPath ให้กับแต่ละบอร์ดเกม
+                const boardgamesWithImagePaths = rows.map(row => ({
+                    ...row,
+                    imagePath: `/images/${row.boardgame_name.replace(/\s+/g, '_').toLowerCase()}.jpg`
+                }));
+                res.json({ data: boardgamesWithImagePaths, "status": "success" });
             }
-
+    
         } catch (error) {
             console.error('Error fetching boardgames:', error);
             res.status(500).json({ error: 'Internal server error', "status": "error" });
         }
-
     },
 
     async getBoardgameById(req, res) {

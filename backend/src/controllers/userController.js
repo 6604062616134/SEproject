@@ -72,7 +72,7 @@ const UserController = {
             const created = new Date();
             const modified = new Date();
 
-            const sql_params = [name, email, hashedPassword, permission, created, modified,tel,studentID];
+            const sql_params = [name, email, hashedPassword, permission, created, modified, tel, studentID];
 
             await db.query(`INSERT INTO users (name, email, password, permission, created, modified, tel, studentID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, sql_params);
 
@@ -170,7 +170,7 @@ const UserController = {
 
             const data = {
                 id: user.id,
-                token : token,
+                token: token,
                 permission: user.permission
             };
 
@@ -182,8 +182,13 @@ const UserController = {
     },
 
     async logout(req, res) {
-        res.clearCookie('auth_token');
-        res.json({ message: 'Logged out', "status": "success" });
+        try {
+            res.clearCookie('auth_token'); // ลบคุกกี้ที่ใช้ในการตรวจสอบสิทธิ์
+            res.json({ message: 'Logout successful', status: 'success' });
+        } catch (error) {
+            console.error('Error logging out:', error);
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
+        }
     }
 };
 
