@@ -31,7 +31,7 @@ function Login() {
         <div className="flex justify-center min-h-screen items-center bg-[#ececec]">
             <div className='container mx-auto'>
                 <div className='flex row justify-center items-center'>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-2">
                         <div className='text-center'>
                             <NavLink to="/" className="text-black text-3xl font-bold">
                                 Boardgames
@@ -60,16 +60,7 @@ function Login() {
                             <button type="submit" className="btn-search">Sign in</button>
                         </div>
                         <div>
-                            <p className="text-base font-light text-center">Don't have an account? <NavLink to="/register" className="text-black" style={{ textDecoration: 'underline' }}>Register<span style={{ textDecoration: 'underline' }}>-{'>'}</span></NavLink></p>
-                        </div>
-                        <div className="flex items-center gap-4 pb-2 pt-2">
-                            <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                            <p className="mx-2">or</p>
-                            <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                        </div>
-                        {/* ปุ่ม sign in with google */}
-                        <div className='flex justify-center'>
-                            <button className="btn-search">Sign in with Google</button>
+                            <p className="text-base font-light text-center">Don't have an account? <NavLink to="/register" className="text-black font-medium" style={{ textDecoration: 'underline' }}>Register<span style={{ textDecoration: 'underline' }}>-{'>'}</span></NavLink></p>
                         </div>
                     </form>
                 </div>
