@@ -7,6 +7,7 @@ import Register from './pages/register';
 import Home from './pages/home';
 import Dashboard from './pages/dashboard';
 import HomeLogin from './pages/home-login';
+import Return from './pages/return';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/home-login" element={<HomeLogin />} />
+          <Route path="/return" element={<Return />} />
         </Routes>
       </div >
     </BrowserRouter>

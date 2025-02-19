@@ -30,13 +30,15 @@ function Login() {
     return (
         <div className="flex justify-center min-h-screen items-center bg-[#ececec]">
             <div className='container mx-auto'>
-                <div className='flex row justify-center items-center'>
-                    <form onSubmit={handleSubmit} className="space-y-2">
-                        <div className='text-center'>
-                            <NavLink to="/" className="text-black text-3xl font-bold">
-                                Boardgames
-                            </NavLink>
-                            <p className='text-right text-s'>KMUTNB</p>
+                <div className='flex col justify-center items-center'>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className='w-full flex justify-center'>
+                            <div className='w-fit'>
+                                <NavLink to="/" className="text-center text-black text-3xl font-bold">
+                                    Boardgames
+                                </NavLink>
+                                <p className='text-right text-s'>KMUTNB</p>
+                            </div>
                         </div>
                         <h2 className="text-2xl font-bold text-left">Welcome back !</h2>
                         <p className="text-base font-light">Enter your email and password</p>
@@ -60,7 +62,7 @@ function Login() {
                             <button type="submit" className="btn-search">Sign in</button>
                         </div>
                         <div>
-                            <p className="text-base font-light text-center">Don't have an account? <NavLink to="/register" className="text-black font-medium" style={{ textDecoration: 'underline' }}>Register<span style={{ textDecoration: 'underline' }}>-{'>'}</span></NavLink></p>
+                            <p className="text-base font-light text-center">Don't have an account? <NavLink to="/register" className="text-black" style={{ textDecoration: 'underline' }}>Register<span style={{ textDecoration: 'underline' }}>-{'>'}</span></NavLink></p>
                         </div>
                     </form>
                 </div>

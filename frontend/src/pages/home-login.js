@@ -299,21 +299,23 @@ function Homelogin() {
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='flex justify-center min-h-screen'>
                 <div className='container mx-auto'>
-                    <h1 className='text-4xl font-bold mt-8 ml-52'>Find Your Boardgames !</h1>
-                    <form onSubmit={handleSearchSubmit} className="mt-5 flex items-center gap-4">
-                        <div className="relative flex-grow">
-                            <FontAwesomeIcon icon={faSearch} className="text-black absolute ml-40 mt-1 left-3 top-1/2 transform -translate-y-1/2" />
-                            <input
-                                type="text"
-                                placeholder="Search Boardgames ..."
-                                name="search"
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                                className="border border-black rounded-3xl p-2 pl-10 ml-40 mt-2 bg-transparent w-[720px]"
-                                style={{ borderWidth: '1px' }}
-                            />
+                    <h1 className='text-4xl font-bold mt-8 ml-12'>Find Your Boardgames !</h1>
+                    <form onSubmit={handleSearchSubmit} className="flex flex-col lg:flex-row justify-center items-center mt-8">
+                        <div className="2xl:w-full w-2/4">
+                            <div className="border border-black rounded-3xl p-2 pl-6 ml-12 bg-transparent w-full flex items-center justify-between gap-2">
+                                <FontAwesomeIcon icon={faSearch} className="" />
+                                <input
+                                    type="text"
+                                    placeholder="Search Boardgames ..."
+                                    name="search"
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="bg-transparent w-full border-none focus:outline-none ml-2"
+                                    style={{ borderWidth: '1px' }}
+                                />
+                            </div>
                         </div>
-                        <div className="flex gap-4 mr-40 mt-2">
+                        <div className="flex gap-4 w-2/3 justify-center mt-8 lg:mt-0">
                             <div className="relative">
                                 <button type="button" className='btn-custom' onClick={toggleCategoryDropdown}>
                                     {selectedCategory}
@@ -426,7 +428,7 @@ function Homelogin() {
                     )}
 
                     {showPopular && (
-                        <div className='flex flex-col mt-10 gap-4 mb-12'>
+                        <div className='flex flex-col mt-10 mb-12 gap-4'>
                             <p className="text-2xl font-semibold ml-48">Popular</p>
                             <div className="flex flex-row flex-wrap gap-4 justify-center">
                                 {popular.map((boardgame) => (
