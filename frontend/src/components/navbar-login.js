@@ -99,9 +99,9 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                     className={`fixed top-50rem left-0 w-1/6 bg-[#f2f2f2] text-white transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
                         } h-[100vh] z-50`}
                 >
-                    <a href="#home" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Home</a>
-                    <a href="#about" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Return</a>
-                    <a href="#services" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">History</a>
+                    <NavLink to="/home-login" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Home</NavLink>
+                    <NavLink to="/return" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Return</NavLink>
+                    <NavLink to="/history" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">History</NavLink>
                     <a onClick={handleLogout} className="block px-6 text-black font-normal hover:underline cursor-pointer z-10" style={{ position: 'relative', top: '315px' }}>Logout <span style={{ textDecoration: 'none' }}>-{'>'}</span></a>
                     <p className="block px-6 text-black font-semibold" style={{ position: 'relative', top: '470px' }}>Contact us</p>
                     <div>
