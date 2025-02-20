@@ -7,6 +7,8 @@ function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [permission, setPermission] = useState('user');
+    const [name, setName] = useState('');
 
     const fetchRegister = async () => {
         if (password !== confirmPassword) {
@@ -16,11 +18,19 @@ function Register() {
 
         try {
             const response = await axios.post('http://localhost:8000/users/register', {
+                name,
                 studentId,
                 email,
                 password,
             });
             console.log(response.data);
+            if (response.data.status === 'success') {
+                alert('Registration successful');
+                // Redirect to login page or home page
+                window.location.href = '/home-login';
+            } else {
+                alert('Registration failed');
+            }
         } catch (error) {
             console.error("Error registering:", error.response?.data || error.message);
         }
@@ -46,6 +56,14 @@ function Register() {
                         </div>
                         <h2 className="text-2xl font-bold text-left">Welcome !</h2>
                         <p className="text-base font-light text-left">Already have an account? <NavLink to="/login" className="text-black font-medium" style={{ textDecoration: 'underline' }}>Sign in<span style={{ textDecoration: 'underline' }}>-{'>'}</span></NavLink></p>
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="border border-black rounded-3xl p-2 pl-5 bg-transparent w-full"
+                            style={{ borderWidth: '1px' }}
+                        />
                         <input
                             type="text"
                             placeholder="Student ID"

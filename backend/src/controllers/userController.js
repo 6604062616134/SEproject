@@ -67,19 +67,20 @@ const UserController = {
     async createUser(req, res) {
         try {
             console.log(req.body);
-            const { name, email, password, permission = 'user', tel, studentID } = req.body;
+            const { name, email, password, studentId } = req.body;
             const hashedPassword = await bcrypt.hash(password, 10);
+            const permission = 'user'; // กำหนดค่า permission เป็น 'user'
             const created = new Date();
             const modified = new Date();
 
-            const sql_params = [name, email, hashedPassword, permission, created, modified, tel, studentID];
+            const sql_params = [name, email, hashedPassword, permission, created, modified, studentId];
 
-            await db.query(`INSERT INTO users (name, email, password, permission, created, modified, tel, studentID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, sql_params);
+            await db.query(`INSERT INTO users (name, email, password, permission, created, modified, studentId) VALUES (?, ?, ?, ?, ?, ?, ?)`, sql_params);
 
-            res.status(201).json({ message: 'User created', "status": "success" });
+            res.status(201).json({ message: 'User created', status: 'success' });
         } catch (error) {
             console.error('Error creating user:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
     },
 
