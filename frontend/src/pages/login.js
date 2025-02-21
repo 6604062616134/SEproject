@@ -14,14 +14,18 @@ function Login() {
         },
             { withCredentials: true }
         );
-        //console.log(response.data);
 
-        if (response.data.data.permission === 'admin' && response.data.status === 'success') {
-            window.location.href = '/dashboard';
-            alert('Login successful');
-        } else if (response.data.data.permission === 'user' && response.data.status === 'success') {
-            alert('Login successful');
-            window.location.href = '/home-login';
+        if (response.data.status === 'success') {
+            const userId = response.data.data.id; // สมมติว่าไอดีของผู้ใช้ถูกส่งกลับมาใน response
+            localStorage.setItem('userId', userId); // เก็บไอดีของผู้ใช้ใน localStorage
+
+            if (response.data.data.permission === 'admin') {
+                window.location.href = '/dashboard';
+                alert('Login successful');
+            } else if (response.data.data.permission === 'user') {
+                alert('Login successful');
+                window.location.href = '/home-login';
+            }
         } else {
             alert('Login failed');
         }

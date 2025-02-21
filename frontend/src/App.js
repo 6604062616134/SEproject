@@ -8,6 +8,7 @@ import Home from './pages/home';
 import Dashboard from './pages/dashboard';
 import HomeLogin from './pages/home-login';
 import Return from './pages/return';
+import History from './pages/history';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/home-login" element={<HomeLogin />} />
           <Route path="/return" element={<Return />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </div >
     </BrowserRouter>

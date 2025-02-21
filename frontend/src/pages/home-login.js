@@ -299,7 +299,7 @@ function Homelogin() {
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='flex justify-center min-h-screen'>
                 <div className='container mx-auto'>
-                    <h1 className='text-4xl font-bold mt-8 ml-12'>Find Your Boardgames !</h1>
+                    <h1 className='text-4xl font-bold mt-24 ml-12 text-black'>Find Your Boardgames !</h1>
                     <form onSubmit={handleSearchSubmit} className="flex flex-col lg:flex-row justify-center items-center mt-8">
                         <div className="2xl:w-full w-2/4">
                             <div className="border border-black rounded-3xl p-2 pl-6 ml-12 bg-transparent w-full flex items-center justify-between gap-2">
