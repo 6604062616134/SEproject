@@ -106,13 +106,23 @@ function Home() {
         setSearchTerm(e.target.value);
     };
 
-    const handleSearchSubmit = (e) => {
+    const handleSearchSubmit = async (e) => {
         e.preventDefault();
         setShowRecommended(false);
-
-        //console.log("BBBB --> ", showRecommended);
         setShowPopular(false);
-        fetchBoardgames();
+        try {
+            const response = await axios.get('http://localhost:8000/boardgames', {
+                params: {
+                    name: searchTerm,
+                    level: selectedLevel !== 'Level' ? selectedLevel : '',
+                    playerCounts: selectedPlayers !== '2 Players' ? selectedPlayers : '',
+                    categoryID: selectedCategory !== 'Category' ? selectedCategory : ''
+                }
+            });
+            setBoardgames(response.data.data);
+        } catch (error) {
+            console.error('Error fetching boardgames:', error);
+        }
     };
 
     const toggleHourDropdown = () => {
@@ -287,7 +297,7 @@ function Home() {
                                     onChange={handleSearchChange}
                                     className="bg-transparent w-full border-none focus:outline-none ml-2"
                                     style={{ borderWidth: '1px' }}
-                                />  
+                                />
                             </div>
                         </div>
                         <div className="flex gap-4 w-2/3 justify-center mt-8 lg:mt-0">
@@ -507,19 +517,19 @@ function Home() {
                     )}
 
                     {/* ส่วนแสดงผลเสิร์ช */}
-                    <div className="flex flex-row flex-wrap gap-4 justify-center">
+                    <div className="flex flex-row flex-wrap gap-4 justify-center mt-10 mb-12">
                         {boardgames.length > 0 ? (
                             boardgames.map((game) => (
-                                <div key={game.id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
-                                    <img src={game.imagePath} alt={game.name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
+                                <div key={game.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
+                                    <img src={game.imagePath} alt={game.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
                                     <div className="mt-3">
-                                        <p className="text-xl font-semibold ml-5">{game.name}</p>
-                                        <p className="text-black ml-5">{game.category}</p>
+                                        <p className="text-xl font-semibold ml-5">{game.boardgame_name}</p>
+                                        <p className="text-black ml-5">{game.category_name}</p>
                                         <p className="text-black ml-5">level : {game.level}</p>
-                                        <p className="text-black ml-5">players : {game.players} persons</p>
+                                        <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
                                             <div>
-                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
+                                                <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
                                             </div>
                                             <button
                                                 className="btn-search"
@@ -534,7 +544,7 @@ function Home() {
                         ) : (
                             <div>
                                 {boardgames.map((game) => (
-                                    <div key={game.id}>{game.name}</div>
+                                    <div key={game.boardgame_id}>{game.boardgame_name}</div>
                                 ))}
                             </div>
                         )}
