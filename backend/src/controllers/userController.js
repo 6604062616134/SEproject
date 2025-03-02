@@ -166,7 +166,7 @@ const UserController = {
             res.cookie('auth_token', token, {
                 httpOnly: true, // ป้องกันการเข้าถึงด้วย JavaScript
                 sameSite: 'strict', // ป้องกัน CSRF
-                maxAge: 3600000 // คุกกี้มีอายุ 1 ชั่วโมง (1h * 60m * 60s * 1000ms)
+                maxAge: 86400000 // คุกกี้มีอายุ 24 ชั่วโมง (หน่วยเป็น ms) 24 * 60 * 60 * 1000 = 86400000
             });
 
             const data = {

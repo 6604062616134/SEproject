@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import NavbarLogin from '../components/navbar-login';
 import '../index.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 
@@ -15,6 +15,8 @@ function Return() {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [studentID, setStudentID] = useState('');
+    const navigate = useNavigate();
+    const formRef = useRef(null); // เพิ่ม useRef สำหรับฟอร์ม
 
     const toggleMenu = (isCollapsed) => {
         setIsMenuOpen(isCollapsed);
@@ -29,13 +31,54 @@ function Return() {
         setIsCategoryOpen(false);
     };
 
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+    };
+
+    const handleReturn = async (e) => {
+        e.preventDefault();
+        try {
+            const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
+            const response = await axios.post('http://localhost:8000/br/create', {
+                boardgameName: boardgameName,
+                user_id: userId,
+                date: selectedDate,
+                mode: 'returned',
+                email: email,
+                name: name,
+                studentID: studentID
+            }, { withCredentials: true });
+
+            if (response.data.status === 'success') {
+                alert('Return request sent successfully');
+            } else {
+                alert('Return request failed');
+            }
+        } catch (error) {
+            console.error('Error returning boardgame:', error);
+            alert('Error returning boardgame');
+        }
+    };
+
+    const handleCancel = () => {
+        if (formRef.current) {
+            formRef.current.reset(); // รีเซ็ตฟอร์ม
+        }
+        setBoardgameName('');
+        setSelectedCategory('Select Category');
+        setSelectedDate('');
+        setEmail('');
+        setName('');
+        setStudentID('');
+    };
+
     return (
         <div>
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='flex justify-center min-h-screen'>
                 <div className='container mx-auto'>
-                    <div className='flex flex-col justify-center items-center'>
-                        <form className="space-y-4">
+                    <div className='flex flex-col justify-center items-center mt-20'>
+                        <form className="space-y-4" onSubmit={handleReturn} ref={formRef}>
                             <div className='w-full'>
                                 <h2 className="text-3xl font-bold text-left mt-12 mb-4">Returning</h2>
                                 <div className='flex flex-row gap-12'>
@@ -93,7 +136,7 @@ function Return() {
                                             <input
                                                 type="text"
                                                 placeholder="YY"
-                                                maxLength="2"
+                                                maxLength="4"
                                                 className="w-10 text-center"
                                                 style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
                                             />
@@ -137,7 +180,7 @@ function Return() {
                                 </div>
                                 <div className='flex flex-row justify-end gap-2'>
                                     <button type="submit" className="btn-search">Return</button>
-                                    <button type="reset" className="btn-custom">cancel</button>
+                                    <button type="button" className="btn-custom" onClick={handleCancel}>Cancel</button>
                                 </div>
                             </div>
                         </form>

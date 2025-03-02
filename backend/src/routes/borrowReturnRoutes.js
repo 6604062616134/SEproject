@@ -7,7 +7,8 @@ router.get('/transactions', borrowReturnController.getTransactionsList);
 router.get('/getStatus/:gameId', borrowReturnController.getStatus);
 router.get('/:id', borrowReturnController.getTransactionById);
 
-router.post('/',authenticateToken, borrowReturnController.createTransaction);
+// router.post('/create',authenticateToken, borrowReturnController.createTransaction);
+router.post('/create', borrowReturnController.createTransaction);
 // router.post('/return', borrowReturnController.returnTransaction);
 
 // router.put('/:id', borrowReturnController.updateTransaction);
