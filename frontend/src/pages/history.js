@@ -9,6 +9,21 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 function History() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [transactions, setTransactions] = useState([]); // เพิ่ม state สำหรับเก็บข้อมูลการยืมคืน
+
+    useEffect(() => {
+        // Fetch API มาแสดงประวัติการยืมคืนจากดาต้าเบส ใช้เส้น getTransactionsList
+        const fetchTransactions = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/br/transactions');
+                setTransactions(response.data.data); // เก็บข้อมูลที่ได้รับใน state
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            }
+        };
+
+        fetchTransactions();
+    }, []);
 
     const toggleMenu = (isCollapsed) => {
         setIsMenuOpen(isCollapsed);
@@ -16,6 +31,11 @@ function History() {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
+    };
+
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
     return (
@@ -47,31 +67,16 @@ function History() {
                                     <th>Type</th>
                                     <th>Boardgame's name</th>
                                     <th>Date</th>
-                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody className='text-center'>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Monopoly</td>
-                                    <td>2021-09-01</td>
-
-                                    <td>Win</td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Scrabble</td>
-                                    <td>2021-09-02</td>
-
-                                    <td>Lose</td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Catan</td>
-                                    <td>2021-09-03</td>
-
-                                    <td>Win</td>
-                                </tr>
+                                {Array.isArray(transactions) && transactions.map((transaction, index) => (
+                                    <tr key={index} className='p-4' style={{ borderBottom: '1px solid black' }}>
+                                        <td>{transaction.status}</td>
+                                        <td>{transaction.game_name}</td>
+                                        <td>{formatDate(transaction.borrowingDate)}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

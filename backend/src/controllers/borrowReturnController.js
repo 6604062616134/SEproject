@@ -1,25 +1,47 @@
 const db = require('../db');
 
 const BorrowReturnController = {
+    // async getTransactionsList(req, res) {
+    //     try {
+    //         const orderby = req?.query?.orderby || 'desc'; //default order by desc
+
+    //         let sql = `SELECT borrowreturn.transactionID,users.id AS user_id,users.name AS user_name,users.studentID,boardgames.id AS game_id,boardgames.name AS game_name FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id`; //join 3 tables
+
+    //         sql += ` ORDER BY borrowreturn.transactionID ${orderby}`;
+
+    //         const [rows] = await db.query(sql);
+
+    //         if (rows.length === 0) {
+    //             res.status(404).json({ error: 'Transaction not found', "status": "error" });
+    //         } else {
+    //             res.json({ data: rows, "status": "success" });
+    //         }
+
+    //     } catch (error) {
+    //         console.error('Error fetching transactions:', error);
+    //         res.status(500).json({ error: 'Internal server error', "status": "error" });
+    //     }
+    // },
+
     async getTransactionsList(req, res) {
         try {
-            const orderby = req?.query?.orderby || 'desc'; //default order by desc
+            const orderby = req?.query?.orderby || 'desc'; // default order by desc
 
-            let sql = `SELECT borrowreturn.transactionID,users.id AS user_id,users.name AS user_name,users.studentID,users.tel,boardgames.id AS game_id,boardgames.name AS game_name FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id`; //join 3 tables
+            let sql = `SELECT borrowreturn.transactionID, users.id AS user_id, users.name AS user_name, users.studentID, boardgames.id AS game_id, boardgames.name AS game_name, borrowreturn.status, borrowreturn.borrowingDate, borrowreturn.returningDate FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id`; // join 3 tables
 
             sql += ` ORDER BY borrowreturn.transactionID ${orderby}`;
 
             const [rows] = await db.query(sql);
 
             if (rows.length === 0) {
-                res.status(404).json({ error: 'Transaction not found', "status": "error" });
+                res.status(404).json({ error: 'Transaction not found', status: 'error' });
             } else {
-                res.json({ data: rows, "status": "success" });
+                res.json({ data: rows, status: 'success' });
             }
 
         } catch (error) {
             console.error('Error fetching transactions:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
     },
 

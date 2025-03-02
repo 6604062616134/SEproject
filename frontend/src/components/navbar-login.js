@@ -17,8 +17,12 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
         const fetchUser = async () => {
             try {
                 const userId = localStorage.getItem('userId');
-                const response = await axios.get(`http://localhost:8000/users/${userId}`, { withCredentials: true });
-                setUsername(response.data.data.name);
+                if (userId) {
+                    const response = await axios.get(`http://localhost:8000/users/${userId}`, { withCredentials: true });
+                    setUsername(response.data.data.name);
+                } else {
+                    console.error('User ID not found in localStorage');
+                }
             } catch (error) {
                 console.error('Error fetching user:', error);
             }
