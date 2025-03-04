@@ -43,7 +43,7 @@ function Return() {
                 boardgameName: boardgameName,
                 user_id: userId,
                 date: selectedDate,
-                mode: 'returned',
+                mode: 'returning',
                 email: email,
                 name: name,
                 studentID: studentID

@@ -26,8 +26,13 @@ const BorrowReturnController = {
     async getTransactionsList(req, res) {
         try {
             const orderby = req?.query?.orderby || 'desc'; // default order by desc
+            const mode = req.query.mode || ''; // default mode is null
 
             let sql = `SELECT borrowreturn.transactionID, users.id AS user_id, users.name AS user_name, users.studentID, boardgames.id AS game_id, boardgames.name AS game_name, borrowreturn.status, borrowreturn.borrowingDate, borrowreturn.returningDate FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id`; // join 3 tables
+
+            if (mode) {
+                sql += ` WHERE borrowreturn.status = '${mode}'`;
+            }
 
             sql += ` ORDER BY borrowreturn.transactionID ${orderby}`;
 
