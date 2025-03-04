@@ -12,10 +12,11 @@ function History() {
     const [transactions, setTransactions] = useState([]); // เพิ่ม state สำหรับเก็บข้อมูลการยืมคืน
 
     useEffect(() => {
-        // Fetch API มาแสดงประวัติการยืมคืนจากดาต้าเบส ใช้เส้น getTransactionsList
+        // Fetch API มาแสดงประวัติการยืมคืนของผู้ใช้ที่ล็อกอินอยู่
         const fetchTransactions = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/br/transactions');
+                const userId = localStorage.getItem('userId');
+                const response = await axios.get(`http://localhost:8000/br/transactions/${userId}`);
                 setTransactions(response.data.data); // เก็บข้อมูลที่ได้รับใน state
             } catch (error) {
                 console.error('Error fetching transactions:', error);
@@ -50,7 +51,7 @@ function History() {
                                 <FontAwesomeIcon icon={faSearch} className="" />
                                 <input
                                     type="text"
-                                    placeholder="Search Boardgames ..."
+                                    placeholder="Enter boardgame's name ..."
                                     name="search"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
@@ -63,18 +64,18 @@ function History() {
                         {/* ตารางแสดงข้อมูล */}
                         <table className='table-auto w-[800px] mt-8'>
                             <thead style={{ borderBottom: '2px solid black' }}>
-                                <tr className='text-center'>
+                                <tr className='text-left'>
                                     <th>Type</th>
                                     <th>Boardgame's name</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
-                            <tbody className='text-center'>
+                            <tbody className='text-left'>
                                 {Array.isArray(transactions) && transactions.map((transaction, index) => (
-                                    <tr key={index} className='p-4' style={{ borderBottom: '1px solid black' }}>
-                                        <td>{transaction.status}</td>
-                                        <td>{transaction.game_name}</td>
-                                        <td>{formatDate(transaction.borrowingDate)}</td>
+                                    <tr key={index} style={{ borderBottom: '1px solid black' }}>
+                                        <td className='pt-4 pb-4'>{transaction.status}</td>
+                                        <td className='pt-4 pb-4'>{transaction.game_name}</td>
+                                        <td className='pt-4 pb-4'>{formatDate(transaction.borrowingDate)}</td>
                                     </tr>
                                 ))}
                             </tbody>

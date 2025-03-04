@@ -24,25 +24,36 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                     console.error('User ID not found in localStorage');
                 }
             } catch (error) {
-                console.error('Error fetching user:', error);
+                if (error.response && error.response.status === 401) {
+                    alert('Session expired. Please log in again.');
+                    navigate('/login');
+                } else {
+                    console.error('Error fetching user:', error);
+                }
             }
         };
 
         fetchUser();
-    }, []);
+    }, [navigate]);
 
     const fetchNotification = async () => {
         try {
             const response = await axios.get('http://localhost:8000/notifications', { withCredentials: true });
             console.log(response.data);
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            if (error.response && error.response.status === 401) {
+                alert('Session expired. Please log in again.');
+                navigate('/login');
+            } else {
+                console.error('Error fetching notifications:', error);
+            }
         }
     };
 
     const logout = async () => {
         try {
-            await axios.post('http://localhost:8000/logout', {}, { withCredentials: true });
+            await axios.post('http://localhost:8000/users/logout', {}, { withCredentials: true });
+            localStorage.removeItem('userId'); // ลบ userId ออกจาก localStorage เมื่อผู้ใช้ล็อกเอาท์
             navigate('/');
         } catch (error) {
             console.error('Error logging out:', error);

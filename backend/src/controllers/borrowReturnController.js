@@ -47,19 +47,21 @@ const BorrowReturnController = {
 
     async getTransactionById(req, res) {
         try {
-            const id = req.params.id;
+            const userId = req.params.id;
 
-            const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', id);
+            const sql = `SELECT borrowreturn.transactionID, users.id AS user_id, users.name AS user_name, users.studentID, boardgames.id AS game_id, boardgames.name AS game_name, borrowreturn.status, borrowreturn.borrowingDate, borrowreturn.returningDate FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id WHERE users.id = ?`; // join 3 tables
+
+            const [rows] = await db.query(sql, [userId]);
 
             if (rows.length === 0) {
-                res.status(404).json({ error: 'Transaction not found', "status": "error" });
+                res.status(404).json({ error: 'Transaction not found', status: 'error' });
             } else {
-                res.json({ data: rows, "status": "success" });
+                res.json({ data: rows, status: 'success' });
             }
 
         } catch (error) {
             console.error('Error fetching transaction:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
     },
 
