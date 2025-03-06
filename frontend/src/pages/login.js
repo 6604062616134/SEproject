@@ -19,10 +19,10 @@ function Login() {
             if (response.data.status === 'success') {
                 const userId = response.data.data.id; // สมมติว่าไอดีของผู้ใช้ถูกส่งกลับมาใน response
                 localStorage.setItem('userId', userId); // เก็บไอดีของผู้ใช้ใน localStorage
-
+            
                 if (response.data.data.permission === 'admin') {
-                    window.location.href = '/dashboard';
                     alert('Login successful');
+                    window.location.href = '/dashboard';
                 } else if (response.data.data.permission === 'user') {
                     alert('Login successful');
                     window.location.href = '/home-login';

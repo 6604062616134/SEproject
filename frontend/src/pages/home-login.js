@@ -116,8 +116,6 @@ function Homelogin() {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setShowRecommended(false);
-
-        //console.log("BBBB --> ", showRecommended);
         setShowPopular(false);
         fetchBoardgames();
     };
@@ -242,11 +240,12 @@ function Homelogin() {
     };
 
     const handleConfirmClick = async () => {
-        const token = localStorage.getItem('token'); // หรือวิธีการอื่นในการรับ token
-        if (!token) {
+        const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('auth_token='));
+        if (!tokenCookie) {
             alert("Please log in to borrow a board game.");
             return;
         }
+        const token = tokenCookie.split('=')[1];
 
         if (!selectedHour || selectedHour === 'Select Hour') {
             alert("Please select an hour.");
@@ -532,16 +531,16 @@ function Homelogin() {
                     )}
 
                     {/* ส่วนแสดงผลเสิร์ช */}
-                    <div className="flex flex-row flex-wrap gap-4 justify-center">
+                    <div className="flex flex-row flex-wrap gap-6 justify-center mt-10 mb-12">
                         {boardgames.length > 0 ? (
                             boardgames.map((game) => (
-                                <div key={game.id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
-                                    <img src={game.imagePath} alt={game.name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
+                                <div key={game.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
+                                    <img src={game.imagePath} alt={game.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
                                     <div className="mt-3">
-                                        <p className="text-xl font-semibold ml-5">{game.name}</p>
-                                        <p className="text-black ml-5">{game.category}</p>
+                                        <p className="text-xl font-semibold ml-5">{game.boardgame_name}</p>
+                                        <p className="text-black ml-5">{game.category_name}</p>
                                         <p className="text-black ml-5">level : {game.level}</p>
-                                        <p className="text-black ml-5">players : {game.players} persons</p>
+                                        <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
                                             <div>
                                                 <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
@@ -559,7 +558,7 @@ function Homelogin() {
                         ) : (
                             <div>
                                 {boardgames.map((game) => (
-                                    <div key={game.id}>{game.name}</div>
+                                    <div key={game.boardgame_id}>{game.boardgame_name}</div>
                                 ))}
                             </div>
                         )}
