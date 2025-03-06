@@ -6,6 +6,7 @@ const { authenticateToken } = require('../middleware/authenticateToken');
 router.get('/transactions', borrowReturnController.getTransactionsList);
 router.get('/getStatus/:gameId', borrowReturnController.getStatus);
 router.get('/transactions/:id', borrowReturnController.getTransactionById);
+router.put('/transactions/:id/status', borrowReturnController.updateTransactionStatus);
 
 // router.post('/create',authenticateToken, borrowReturnController.createTransaction);
 router.post('/create', borrowReturnController.createTransaction);

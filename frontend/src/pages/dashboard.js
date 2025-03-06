@@ -30,9 +30,17 @@ function Dashboard() {
         setSearchTerm(e.target.value);
     };
 
-    const handleAccept = (transactionId) => {
-        // เพิ่มโค้ดสำหรับการยอมรับการคืนบอร์ดเกม
-        console.log(`Accepted transaction ID: ${transactionId}`);
+    const handleAccept = async (transactionId) => {
+        try {
+            await axios.put(`http://localhost:8000/br/transactions/${transactionId}/status`, {
+                status: 'available'
+            });
+            // ลบแถวออกจาก state
+            setTransactions(transactions.filter(transaction => transaction.transactionID !== transactionId));
+            console.log(`Accepted transaction ID: ${transactionId}`);
+        } catch (error) {
+            console.error('Error updating transaction status:', error);
+        }
     };
 
     const handleReject = (transactionId) => {

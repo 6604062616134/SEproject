@@ -25,7 +25,7 @@ const BorrowReturnController = {
 
     async getTransactionsList(req, res) {
         try {
-            const orderby = req?.query?.orderby || 'desc'; // default order by desc
+            const orderby = req?.query?.orderby || 'asc'; // default order by desc
             const mode = req.query.mode || ''; // default mode is null
 
             let sql = `SELECT borrowreturn.transactionID, users.id AS user_id, users.name AS user_name, users.studentID, boardgames.id AS game_id, boardgames.name AS game_name, borrowreturn.status, borrowreturn.borrowingDate, borrowreturn.returningDate FROM borrowreturn LEFT JOIN users ON borrowreturn.userID = users.id LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id`; // join 3 tables
@@ -137,6 +137,25 @@ const BorrowReturnController = {
     //         res.status(500).json({ error: 'Internal server error', "status": "error" });
     //     }
     // },
+
+    async updateTransactionStatus(req, res) {
+        try {
+            const transactionId = req.params.id;
+            const newStatus = req.body.status;
+
+            const sql = `UPDATE borrowreturn SET status = ?, modified = NOW() WHERE transactionID = ?`;
+            const [result] = await db.query(sql, [newStatus, transactionId]);
+
+            if (result.affectedRows === 0) {
+                res.status(404).json({ error: 'Transaction not found', status: 'error' });
+            } else {
+                res.json({ status: 'success' });
+            }
+        } catch (error) {
+            console.error('Error updating transaction status:', error);
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
+        }
+    },
 
     async getStatus(req, res) {
         try {
