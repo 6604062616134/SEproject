@@ -27,7 +27,7 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                     </div>
                     <div className='flex gap-5 p-4' style={{ position: 'absolute', right: '0' }}>
                         <p className='cursor-pointer'>Admin</p>
-                        <NavLink to='/login' className='cursor-pointer hover:underline z-10'>Logout</NavLink>
+                        <button onClick={logout} className='cursor-pointer hover:underline z-10'>Logout</button>
                     </div>
                 </div>
             </div>

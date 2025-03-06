@@ -513,7 +513,7 @@ function Homelogin() {
                                     <input
                                         type="text"
                                         placeholder="YY"
-                                        maxLength="2"
+                                        maxLength="4"
                                         className="w-10 text-center"
                                         style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
                                     />

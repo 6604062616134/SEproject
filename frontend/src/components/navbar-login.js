@@ -32,7 +32,6 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 }
             }
         };
-
         fetchUser();
     }, [navigate]);
 
@@ -80,7 +79,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 <div className="flex items-center justify-between p-4">
                     <button onClick={handleToggle} className="text-white text-xl z-10">☰</button>
                     <div className='text-center'>
-                        <NavLink to="/" className="text-white text-2xl font-bold">Boardgames</NavLink>
+                        <NavLink to="/home-login" className="text-white text-2xl font-bold">Boardgames</NavLink>
                         <p className='text-xs text-right'>KMUTNB</p>
                     </div>
                     <div className='flex items-center gap-4'>
