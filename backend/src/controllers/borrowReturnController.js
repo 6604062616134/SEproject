@@ -91,18 +91,20 @@ const BorrowReturnController = {
 
     async createTransaction(req, res) {
         try {
-            const { boardgameName, user_id, date, email, name, studentID } = req.body;
+            const { boardgame_id, user_id, booking_date, hour } = req.body;
             const mode = req.query.mode || 'borrowed'; // default mode is borrowed
 
-            // ดึง boardgame_id จากชื่อบอร์ดเกม
-            const [boardgame] = await db.query('SELECT id FROM boardgames WHERE name = ?', [boardgameName]);
-            if (boardgame.length === 0) {
-                return res.status(404).json({ status: 'error', error: 'Boardgame not found' });
-            }
-            const boardgame_id = boardgame[0].id;
+            // ดึงวันเวลาปัจจุบัน
+            const borrowingDate = new Date();
 
-            const sql = `INSERT INTO borrowreturn (userID, gameID, borrowingDate, returningDate, status, created, modified) VALUES (?, ?, NOW(), ?, ?, NOW(), NOW())`;
-            const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, date, mode]);
+            // คำนวณ borrow_return_date โดยการบวกชั่วโมงที่เลือก
+            const borrowReturnDate = new Date(borrowingDate);
+            if (hour) {
+                borrowReturnDate.setHours(borrowReturnDate.getHours() + parseInt(hour));
+            }
+
+            const sql = `INSERT INTO borrowreturn (userID, gameID, borrowingDate, returningDate, status, created, modified, booking_date, borrow_return_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)`;
+            const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, borrowingDate, borrowReturnDate, mode, booking_date, borrowReturnDate]);
 
             const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', [insertId]);
 

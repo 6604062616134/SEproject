@@ -11,6 +11,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const [isOpenNoti, setIsOpenNoti] = useState(false);
     const [hasNewNotification, setHasNewNotification] = useState(true);
     const [username, setUsername] = useState('');
+    const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,7 +39,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const fetchNotification = async () => {
         try {
             const response = await axios.get('http://localhost:8000/notifications', { withCredentials: true });
-            console.log(response.data);
+            setNotifications(response.data.data);
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
@@ -94,9 +95,22 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             <div className="absolute top-16 right-4 bg-white text-black p-4 rounded shadow-lg z-50 w-64">
                                 <h2 className="font-semibold text-lg">Notifications</h2>
                                 <ul className="mt-2">
-                                    <li className="border-b py-2">มีการอัปเดตใหม่ในระบบ</li>
-                                    <li className="border-b py-2">มีบอร์ดเกมใหม่เข้ามา</li>
-                                    <li className="py-2">โปรโมชันพิเศษสำหรับสมาชิก</li>
+                                    {notifications.map((notification, index) => (
+                                        <li key={index} className="border-b py-2">
+                                            {notification.type === 'Returning' ? (
+                                                <>
+                                                    <p>Game: {notification.boardgame_name}</p>
+                                                    <p>Borrowed Date: {new Date(notification.borrowingDate).toLocaleString()}</p>
+                                                    <p>Return Date: {new Date(notification.borrow_return_date).toLocaleString()}</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p>Game: {notification.boardgame_name}</p>
+                                                    <p>Status: {notification.status}</p>
+                                                </>
+                                            )}
+                                        </li>
+                                    ))}
                                 </ul>
                                 <button className="mt-2 bg-black text-white w-full py-1 rounded hover:bg-gray-700" onClick={handleNotificationClick}>ปิด</button>
                             </div>

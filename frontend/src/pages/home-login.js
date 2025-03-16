@@ -240,52 +240,60 @@ function Homelogin() {
     };
 
     const handleConfirmClick = async () => {
-        const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('auth_token='));
-        if (!tokenCookie) {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
             alert("Please log in to borrow a board game.");
             return;
         }
-        const token = tokenCookie.split('=')[1];
-
-        if (!selectedHour || selectedHour === 'Select Hour') {
-            alert("Please select an hour.");
-            return;
-        }
-
+    
         const day = document.querySelector('input[placeholder="DD"]').value;
         const month = document.querySelector('input[placeholder="MM"]').value;
         const year = document.querySelector('input[placeholder="YY"]').value;
-
-        if (!day || !month || !year) {
-            alert("Please fill in the booking date (DD/MM/YY).");
-            return;
+    
+        if (!selectedHour || selectedHour === 'Select Hour') {
+            if (!day || !month || !year) {
+                alert("Please select an hour or fill in the booking date (DD/MM/YY).");
+                return;
+            }
         }
-
+    
         if (selectedGame) {
-            await borrowSubmit(selectedGame.boardgame_id, token);
+            await borrowSubmit(selectedGame.boardgame_id);
             setSelectedGame(null);
         }
     };
-
-    const borrowSubmit = async (boardgameId, token) => {
+    
+    const borrowSubmit = async (boardgameId) => {
         try {
-            let res = await axios.post(
-                'http://localhost:8000/br',
-                { boardgame_id: boardgameId },
+            const day = document.querySelector('input[placeholder="DD"]').value;
+            const month = document.querySelector('input[placeholder="MM"]').value;
+            const year = document.querySelector('input[placeholder="YY"]').value;
+    
+            const bookingDate = day && month && year ? `20${year}-${month}-${day}` : null;
+    
+            const response = await axios.post(
+                'http://localhost:8000/br/create', 
+                { 
+                    boardgame_id: boardgameId,
+                    hour: selectedHour !== 'Select Hour' ? hour : null,
+                    booking_date: bookingDate 
+                },
                 {
-                    withCredentials: true,
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    withCredentials: true
                 }
             );
-            console.log(`Borrow request sent for boardgame ID: ${boardgameId}`);
-            console.log("API Response:", res);
-            if (res.data.status == "success") {
+            
+            if (response.data.status === "success") {
                 alert("Borrow request sent successfully");
+                setSelectedGame(null);
             }
         } catch (error) {
-            console.error("Error submitting borrow request:", error);
+            if (error.response?.status === 401) {
+                alert("Please log in to borrow a board game.");
+            } else {
+                console.error("Error submitting borrow request:", error);
+                alert("Failed to submit borrow request");
+            }
         }
     };
 

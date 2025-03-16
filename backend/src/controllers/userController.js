@@ -165,7 +165,8 @@ const UserController = {
             // ตั้งค่าคุกกี้เพื่อตอบกลับไปยังผู้ใช้
             res.cookie('auth_token', token, {
                 httpOnly: true, // ป้องกันการเข้าถึงด้วย JavaScript
-                sameSite: 'strict', // ป้องกัน CSRF
+                sameSite: 'lax', // หรือ 'none' ถ้า frontend, backend อยู่คนละโดเมน (ต้องใช้ https)
+                secure: process.env.NODE_ENV === 'production', // ใช้ secure=true เมื่อรันบน production
                 maxAge: 86400000 // คุกกี้มีอายุ 24 ชั่วโมง (หน่วยเป็น ms) 24 * 60 * 60 * 1000 = 86400000
             });
 
