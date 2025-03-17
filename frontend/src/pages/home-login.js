@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import '../index.css';
 import { NavLink } from 'react-router-dom';
+import { mode } from 'mathjs';
 
 function Homelogin() {
     const [boardgames, setBoardgames] = useState([]);
@@ -138,7 +139,7 @@ function Homelogin() {
 
     const handleHourSelect = (hour) => {
         setSelectedHour(hour);
-
+    
         switch (hour) {
             case '1 Hour':
                 setHour('1');
@@ -148,6 +149,15 @@ function Homelogin() {
                 break;
             case '3 Hours':
                 setHour('3');
+                break;
+            case '4 Hours':
+                setHour('4');
+                break;
+            case '5 Hours':
+                setHour('5');
+                break;
+            case 'Select hour':
+                setHour('');
                 break;
             default:
                 setHour('');
@@ -265,18 +275,22 @@ function Homelogin() {
     
     const borrowSubmit = async (boardgameId) => {
         try {
+            const userId = localStorage.getItem('userId');
             const day = document.querySelector('input[placeholder="DD"]').value;
             const month = document.querySelector('input[placeholder="MM"]').value;
             const year = document.querySelector('input[placeholder="YY"]').value;
     
             const bookingDate = day && month && year ? `20${year}-${month}-${day}` : null;
+            const mode = bookingDate ? 'reserved' : 'borrowed';
     
             const response = await axios.post(
                 'http://localhost:8000/br/create', 
                 { 
                     boardgame_id: boardgameId,
+                    user_id: userId,
                     hour: selectedHour !== 'Select Hour' ? hour : null,
-                    booking_date: bookingDate 
+                    booking_date: bookingDate,
+                    mode: mode
                 },
                 {
                     withCredentials: true
@@ -484,7 +498,8 @@ function Homelogin() {
                                     {isHourOpen && (
                                         <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                             <ul>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select hour</li>
+                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('2 Hours')}>2 Hours</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('3 Hours')}>3 Hours</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('4 Hours')}>4 Hours</li>

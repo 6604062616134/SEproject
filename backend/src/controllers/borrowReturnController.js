@@ -92,7 +92,7 @@ const BorrowReturnController = {
     async createTransaction(req, res) {
         try {
             const { boardgame_id, user_id, booking_date, hour } = req.body;
-            const mode = req.query.mode || 'borrowed'; // default mode is borrowed
+            const mode = booking_date ? 'reserved' : 'borrowed'; // ถ้ามี booking_date ให้เป็นโหมด reserved
 
             // ดึงวันเวลาปัจจุบัน
             const borrowingDate = new Date();
@@ -105,6 +105,11 @@ const BorrowReturnController = {
 
             const sql = `INSERT INTO borrowreturn (userID, gameID, borrowingDate, returningDate, status, created, modified, booking_date, borrow_return_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)`;
             const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, borrowingDate, borrowReturnDate, mode, booking_date, borrowReturnDate]);
+
+            if (mode === 'reserved') {
+                const reservationSql = `INSERT INTO reservation (transactionID, booking, Expired, created, modified) VALUES (?, ?, ?, NOW(), NOW())`;
+                await db.query(reservationSql, [insertId, booking_date, borrowReturnDate]);
+            }
 
             const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', [insertId]);
 
