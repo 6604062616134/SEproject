@@ -33,6 +33,8 @@ function Homelogin() {
     useEffect(() => {
         fetchBoardgamesRecommended();
         fetchBoardgamesPopular();
+        fetchGameStatus();
+        fetchUsername();
     }, []);
 
     const fetchBoardgames = async () => {
@@ -298,8 +300,13 @@ function Homelogin() {
             );
             
             if (response.data.status === "success") {
-                alert("Borrow request sent successfully");
+                if (mode === 'reserved') {
+                    alert("Reserve request sent successfully");
+                } else {
+                    alert("Borrow request sent successfully");
+                }
                 setSelectedGame(null);
+                fetchGameStatus(boardgameId); // อัปเดตสถานะหลังจากการยืมหรือจอง
             }
         } catch (error) {
             if (error.response?.status === 401) {

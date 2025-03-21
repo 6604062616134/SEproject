@@ -103,13 +103,17 @@ const BorrowReturnController = {
                 borrowReturnDate.setHours(borrowReturnDate.getHours() + parseInt(hour));
             }
 
-            const sql = `INSERT INTO borrowreturn (userID, gameID, borrowingDate, returningDate, status, created, modified, booking_date, borrow_return_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)`;
-            const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, borrowingDate, borrowReturnDate, mode, booking_date, borrowReturnDate]);
+            const sql = `INSERT INTO borrowreturn (userID, gameID, borrowingDate, returningDate, status, created, modified, borrow_return_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?)`;
+            const [{ insertId }] = await db.query(sql, [user_id, boardgame_id, borrowingDate, borrowReturnDate, mode, borrowReturnDate]);
 
             if (mode === 'reserved') {
-                const reservationSql = `INSERT INTO reservation (transactionID, booking, Expired, created, modified) VALUES (?, ?, ?, NOW(), NOW())`;
+                const reservationSql = `INSERT INTO reservation (transactionID, booking, created, modified) VALUES (?, ?, ?, NOW())`;
                 await db.query(reservationSql, [insertId, booking_date, borrowReturnDate]);
             }
+
+            // อัปเดตสถานะของบอร์ดเกมในตาราง boardgames
+            const updateGameStatusSql = `UPDATE boardgames SET status = ? WHERE id = ?`;
+            await db.query(updateGameStatusSql, [mode, boardgame_id]);
 
             const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', [insertId]);
 
@@ -169,23 +173,22 @@ const BorrowReturnController = {
             const gameId = req.params.gameId;
 
             const sql = `
-                SELECT borrowreturn.status, boardgames.name AS game_name
-                FROM borrowreturn
-                LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
-                WHERE borrowreturn.gameID = ?
+                SELECT status
+                FROM boardgames
+                WHERE id = ?
             `;
 
             const [rows] = await db.query(sql, [gameId]);
 
             if (rows.length === 0) {
-                res.status(404).json({ error: 'Status not found', "status": "error" });
+                res.status(404).json({ error: 'Status not found', status: 'error' });
             } else {
-                res.json({ data: rows, "status": "success" });
+                res.json({ data: rows, status: 'success' });
             }
 
         } catch (error) {
             console.error('Error fetching status:', error);
-            res.status(500).json({ error: 'Internal server error', "status": "error" });
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
     },
 
