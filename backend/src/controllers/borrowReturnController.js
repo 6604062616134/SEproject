@@ -111,9 +111,13 @@ const BorrowReturnController = {
                 await db.query(reservationSql, [insertId, booking_date, borrowReturnDate]);
             }
 
-            // อัปเดตสถานะของบอร์ดเกมในตาราง boardgames
-            const updateGameStatusSql = `UPDATE boardgames SET status = ? WHERE id = ?`;
-            await db.query(updateGameStatusSql, [mode, boardgame_id]);
+            if(mode === 'borrowed') {
+                const updateGameStatusSql = `UPDATE boardgames SET status = ? WHERE id = ?`;
+                await db.query(updateGameStatusSql, [mode, boardgame_id]);
+            } else if(mode === 'reserved') {
+                const updateGameStatusSql = `UPDATE borrowreturn SET status = ? WHERE id = ?`;
+                await db.query(updateGameStatusSql, [mode, boardgame_id]);
+            }
 
             const [rows] = await db.query('SELECT * FROM borrowreturn WHERE transactionID = ?', [insertId]);
 
