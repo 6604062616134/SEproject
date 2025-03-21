@@ -58,7 +58,7 @@ function Dashboard() {
             <NavbarAdmin />
             <div className='flex justify-center min-h-screen'>
                 <div className='container mx-auto'>
-                    <div className='flex flex-col justify-center items-center mt-12 w-full'>
+                    <div className='flex flex-col justify-center items-center mt-32 w-full'>
                         <div className='flex flex-row gap-4'>
                             <div className='flex flex-row gap-3'>
                                 <h2 className='text-left text-black font-bold text-3xl'>Dashboard</h2>
