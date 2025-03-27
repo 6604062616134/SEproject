@@ -278,35 +278,21 @@ function Homelogin() {
     const borrowSubmit = async (boardgameId) => {
         try {
             const userId = localStorage.getItem('userId');
-            const day = document.querySelector('input[placeholder="DD"]').value;
-            const month = document.querySelector('input[placeholder="MM"]').value;
-            const year = document.querySelector('input[placeholder="YY"]').value;
-    
-            const bookingDate = day && month && year ? `20${year}-${month}-${day}` : null;
-            const mode = bookingDate ? 'reserved' : 'borrowed';
-    
-            const response = await axios.post(
-                'http://localhost:8000/br/create', 
+            const response = await axios.put(
+                `http://localhost:8000/br/transactions/${boardgameId}/borrow`, // URL ต้องตรงกับ Route ในเซิร์ฟเวอร์
                 { 
-                    boardgame_id: boardgameId,
                     user_id: userId,
-                    hour: selectedHour !== 'Select Hour' ? hour : null,
-                    booking_date: bookingDate,
-                    mode: mode
+                    status: 'borrowed'
                 },
                 {
                     withCredentials: true
                 }
             );
-            
+    
             if (response.data.status === "success") {
-                if (mode === 'reserved') {
-                    alert("Reserve request sent successfully");
-                } else {
-                    alert("Borrow request sent successfully");
-                }
+                alert("Borrow request sent successfully");
                 setSelectedGame(null);
-                fetchGameStatus(boardgameId); // อัปเดตสถานะหลังจากการยืมหรือจอง
+                fetchGameStatus(boardgameId); // อัปเดตสถานะหลังจากการยืม
             }
         } catch (error) {
             if (error.response?.status === 401) {
