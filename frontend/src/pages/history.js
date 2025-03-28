@@ -39,6 +39,10 @@ function History() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
+    const filteredTransactions = transactions.filter((transaction) =>
+        transaction.game_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div>
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
@@ -59,25 +63,29 @@ function History() {
                                     style={{ borderWidth: '1px' }}
                                 />
                             </div>
-                            <button className='btn-search'>Search</button>
+                            {/* <button className='btn-search'>Search</button> */}
                         </div>
                         {/* ตารางแสดงข้อมูล */}
                         <table className='table-auto w-[800px] mt-8'>
                             <thead style={{ borderBottom: '2px solid black' }}>
                                 <tr className='text-left'>
-                                    <th>Type</th>
-                                    <th>Boardgame's name</th>
-                                    <th>Date</th>
+                                    <th className="text-left">Boardgame's name</th>
+                                    <th className="text-right pr-8">Date</th>
                                 </tr>
                             </thead>
-                            <tbody className='text-left'>
-                                {Array.isArray(transactions) && transactions.map((transaction, index) => (
-                                    <tr key={index} style={{ borderBottom: '1px solid black' }}>
-                                        <td className='pt-4 pb-4'>{transaction.status}</td>
-                                        <td className='pt-4 pb-4'>{transaction.game_name}</td>
-                                        <td className='pt-4 pb-4'>{formatDate(transaction.borrowingDate)}</td>
+                            <tbody className='text-left text-black'>
+                                {filteredTransactions.length > 0 ? (
+                                    filteredTransactions.map((transaction, index) => (
+                                        <tr key={index} style={{ borderBottom: '1px solid black' }}>
+                                            <td className='pt-4 pb-4'>{transaction.game_name}</td>
+                                            <td className='pt-4 pb-4 text-right'>{formatDate(transaction.borrowingDate)}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="2" className="text-center pt-4 pb-4 text-black opacity-50">No results</td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
