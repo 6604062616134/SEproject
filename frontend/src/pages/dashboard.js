@@ -59,7 +59,6 @@ function Dashboard() {
             console.log("API Response:", response.data);
     
             if (response.data.status === 'success') {
-                alert('Borrow request sent successfully');
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
                 alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);

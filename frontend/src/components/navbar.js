@@ -5,7 +5,7 @@ function Navbar({ isMenuOpen, toggleMenu }) {
 
     return (
         <div className="font-sans">
-            <div className="bg-black text-white p-5">
+            <div className="bg-black text-white p-5 fixed top-0 left-0 w-full z-50">
                 <div className="flex items-center justify-between p-5">
                     <div className='text-center z-10' style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
                         <NavLink to="/" className="text-white text-2xl font-bold">
