@@ -73,6 +73,10 @@ function Return() {
         setIsConfirmModalOpen(false); // ปิด modal
     };
 
+    const filteredGames = borrowedGames.filter((game) =>
+        game.game_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const handleReturn = async (game) => {
         try {
             console.log("Game Data:", game);
@@ -145,8 +149,12 @@ function Return() {
                         </div>
                         <div className='flex flex-col mt-10 gap-4'>
                             <div className="flex flex-row flex-wrap gap-4 items-start">
-                                {borrowedGames.length > 0 ? (
-                                    borrowedGames.map((game) => (
+                                {borrowedGames.length === 0 ? (
+                                    // หากไม่มีเกมที่ยืมมาเลย
+                                    <p className="text-xl font-semibold text-black opacity-50">No borrowed boardgames</p>
+                                ) : filteredGames.length > 0 ? (
+                                    // หากมีเกมที่ตรงกับคำค้นหา
+                                    filteredGames.map((game) => (
                                         <div key={game.transactionID} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
                                             <img
                                                 src={game.imagePath}
@@ -177,7 +185,8 @@ function Return() {
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-xl font-semibold text-black opacity-50">No borrowed boardgames</p>
+                                    // หากไม่มีเกมที่ตรงกับคำค้นหา
+                                    <p className="text-xl font-semibold text-black opacity-50">No results</p>
                                 )}
                             </div>
                         </div>
