@@ -21,6 +21,8 @@ function Return() {
     const [borrowedGames, setBorrowedGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null); // เก็บข้อมูลบอร์ดเกมที่เลือก
     const [isModalOpen, setIsModalOpen] = useState(false); // จัดการสถานะ modal
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // จัดการสถานะ modal
+    const [gameToReturn, setGameToReturn] = useState(null);
 
     useEffect(() => {
         fetchBorrowedGames();
@@ -58,22 +60,34 @@ function Return() {
         setSearchTerm(e.target.value);
     };
 
-    const handleReturn = async (e) => {
-        e.preventDefault();
-        try {
-            const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
-            const response = await axios.post('http://localhost:8000/br/create', {
-                boardgameName: boardgameName,
-                user_id: userId,
-                date: selectedDate,
-                mode: 'returning',
-                email: email,
-                name: name,
-                studentID: studentID
-            }, { withCredentials: true });
+    const openConfirmModal = (game) => {
+        setGameToReturn(game); // เก็บข้อมูลเกมที่ต้องการคืน
+        setIsConfirmModalOpen(true); // เปิด modal
+    };
 
+    const closeConfirmModal = () => {
+        setGameToReturn(null); // ล้างข้อมูลเกม
+        setIsConfirmModalOpen(false); // ปิด modal
+    };
+
+    const handleReturn = async (game) => {
+        try {
+            console.log("Game Data:", game); // ตรวจสอบข้อมูลเกม
+            console.log("Game ID:", game?.game_id); // ตรวจสอบ game_id
+            const userId = localStorage.getItem('userId'); // รับ userID จาก localStorage
+            console.log("Request Data:", {
+                user_id: userId,
+                status: 'returned',
+            });
+    
+            const response = await axios.put(`http://localhost:8000/br/transactions/${game.game_id}/borrow`, {
+                user_id: userId,
+                status: 'returned',
+            }, { withCredentials: true });
+    
             if (response.data.status === 'success') {
                 alert('Return request sent successfully');
+                window.location.reload(); // รีเฟรชหน้าเว็บ
             } else {
                 alert('Return request failed');
             }
@@ -151,13 +165,40 @@ function Return() {
                                                 <div>
                                                     <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
                                                 </div>
-                                                <button className="btn-search">Return</button>
+                                                <button
+                                                    className="btn-search"
+                                                    onClick={() => openConfirmModal(game)} // เปิด modal พร้อมส่งข้อมูลเกม
+                                                >
+                                                    Return
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
+                        {isConfirmModalOpen && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '35px' }}>
+                                    <h3 className="font-bold text-xl">Return</h3>
+                                    <p className="mt-4">Confirm returning <strong>{gameToReturn?.game_name}</strong>?</p>
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            className="btn-custom"
+                                            onClick={closeConfirmModal} // ปิด modal
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="btn-search"
+                                            onClick={() => handleReturn(gameToReturn)} // ดำเนินการคืนเกม
+                                        >
+                                            Confirm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

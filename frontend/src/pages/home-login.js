@@ -66,12 +66,10 @@ function Homelogin() {
     const fetchBoardgamesRecommended = async () => {
         try {
             const response = await axios.get('http://localhost:8000/boardgames/recommended');
-            console.log("API Response:", response.data.data);
-            setShowRecommended(true);
+            console.log("Recommended Games:", response.data.data); // ตรวจสอบข้อมูลที่ส่งกลับ
             setRecommended(response.data.data);
         } catch (error) {
             console.error("Error fetching recommended boardgames:", error);
-            setRecommended([]);
         }
     };
 
@@ -88,11 +86,22 @@ function Homelogin() {
     };
 
     const fetchGameStatus = async (gameId) => {
+        if (!gameId) {
+            console.error("Error: Missing game ID");
+            return;
+        }
+
         try {
+            console.log("Fetching status for game ID:", gameId);
             const response = await axios.get(`http://localhost:8000/br/getStatus/${gameId}`);
-            console.log("Game Status Response:", response.data);
-            setStatus(response.data.data[0].status);
-            console.log(response.data.data[0].status);
+
+            if (response.data.data.length > 0) {
+                console.log("Game Status Response:", response.data.data[0]);
+                setStatus(response.data.data[0].status);
+            } else {
+                console.warn("No status found for game ID:", gameId);
+                setStatus("unknown");
+            }
         } catch (error) {
             console.error("Error fetching game status:", error);
         }
@@ -108,7 +117,15 @@ function Homelogin() {
     };
 
     const handleBorrowClick = (boardgame) => {
-        setSelectedGame(boardgame);
+        console.log("Selected Boardgame in Borrow Click:", boardgame); // ตรวจสอบข้อมูลเกมที่เลือก
+
+        if (!boardgame || !boardgame.boardgame_id) {
+            console.error("Error: Boardgame ID is missing", boardgame);
+            alert("Error: Boardgame ID is missing.");
+            return;
+        }
+
+        setSelectedGame(boardgame); // อัปเดตค่าที่เลือก
         fetchGameStatus(boardgame.boardgame_id);
     };
 
@@ -141,7 +158,7 @@ function Homelogin() {
 
     const handleHourSelect = (hour) => {
         setSelectedHour(hour);
-    
+
         switch (hour) {
             case '1 Hour':
                 setHour('1');
@@ -257,52 +274,61 @@ function Homelogin() {
             alert("Please log in to borrow a board game.");
             return;
         }
-    
+
         const day = document.querySelector('input[placeholder="DD"]').value;
         const month = document.querySelector('input[placeholder="MM"]').value;
         const year = document.querySelector('input[placeholder="YY"]').value;
-    
+
         if (!selectedHour || selectedHour === 'Select Hour') {
             if (!day || !month || !year) {
                 alert("Please select an hour or fill in the booking date (DD/MM/YY).");
                 return;
             }
         }
-    
-        if (selectedGame) {
-            await borrowSubmit(selectedGame.boardgame_id);
+
+        console.log("Selected Game:", selectedGame); // ตรวจสอบค่า selectedGame
+
+        if (selectedGame && selectedGame.boardgame_id) {
+            await borrowSubmit(selectedGame); // ส่ง selectedGame ไปยัง borrowSubmit
             setSelectedGame(null);
+        } else {
+            console.error("Error: selectedGame is null or boardgame_id is undefined");
+            alert("Error: Board game ID is missing.");
         }
     };
+
+    const borrowSubmit = async (game) => {
+        const userId = localStorage.getItem('userId');
     
-    const borrowSubmit = async (boardgameId) => {
+        if (!userId) {
+            alert("User ID not found. Please log in.");
+            return;
+        }
+    
+        if (!game || !game.boardgame_id) {
+            alert("Game ID is missing.");
+            return;
+        }
+    
         try {
-            const userId = localStorage.getItem('userId');
-            const response = await axios.put(
-                `http://localhost:8000/br/transactions/${boardgameId}/borrow`, // URL ต้องตรงกับ Route ในเซิร์ฟเวอร์
-                { 
-                    user_id: userId,
-                    status: 'borrowed'
-                },
-                {
-                    withCredentials: true
-                }
-            );
+            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+                gameID: game.boardgame_id,
+                userID: userId,
+                status: 'borrowed',
+            }, { withCredentials: true });
     
-            if (response.data.status === "success") {
-                alert("Borrow request sent successfully");
-                setSelectedGame(null);
-                fetchGameStatus(boardgameId); // อัปเดตสถานะหลังจากการยืม
+            console.log("API Response:", response.data);
+    
+            if (response.data.status === 'success') {
+                alert('Borrow request sent successfully');
+            } else {
+                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
             }
         } catch (error) {
-            if (error.response?.status === 401) {
-                alert("Please log in to borrow a board game.");
-            } else {
-                console.error("Error submitting borrow request:", error);
-                alert("Failed to submit borrow request");
-            }
+            console.error('Error submitting borrow request:', error.response?.data || error.message);
+            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
         }
-    };
+    };       
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -491,7 +517,7 @@ function Homelogin() {
                                     {isHourOpen && (
                                         <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                             <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select hour</li>
+                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select hour</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('2 Hours')}>2 Hours</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('3 Hours')}>3 Hours</li>

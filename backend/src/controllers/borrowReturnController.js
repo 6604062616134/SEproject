@@ -1,3 +1,4 @@
+const { mode } = require('mathjs');
 const db = require('../db');
 
 const BorrowReturnController = {
@@ -155,8 +156,9 @@ const BorrowReturnController = {
             const [rows] = await db.query(sql, [userId]);
 
             if (rows.length === 0) {
-                res.status(404).json({ error: 'No borrowed games found', status: 'error' });
+                return res.status(404).json({ error: 'No borrowed games found', status: 'error' }); // เพิ่ม return
             }
+
             // เพิ่ม imagePath ให้กับแต่ละบอร์ดเกม
             const borrowedGamesWithImagePaths = rows.map(row => ({
                 ...row,
@@ -173,49 +175,62 @@ const BorrowReturnController = {
 
     async updateTransactionStatus(req, res) {
         try {
-            const { boardgame_id } = req.params;
-            const { user_id, status } = req.body;
-
+            const { gameID, userID, status } = req.body;
+    
+            console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
+    
+            if (!gameID || !userID || !status) {
+                return res.status(400).json({ status: 'error', message: 'Missing required fields' });
+            }
+    
+            // ตรวจสอบว่ามีข้อมูลเกมนี้อยู่ในฐานข้อมูลหรือไม่
+            const [existingTransaction] = await db.query(`SELECT * FROM borrowreturn WHERE gameID = ?`, [gameID]);
+    
+            if (existingTransaction.length === 0) {
+                return res.status(404).json({ status: 'error', message: 'Game not found' });
+            }
+    
+            // อัพเดต userID และสถานะ
             const sql = `
                 UPDATE borrowreturn
-                SET status = ?, userID = ?, modified = NOW()
-                WHERE gameID = ? AND status = 'available'
+                SET status = ?, userID = COALESCE(userID, ?), modified = NOW()
+                WHERE gameID = ?
             `;
-            const [result] = await db.query(sql, [status, boardgame_id, user_id]);
-
+            const [result] = await db.query(sql, [status, userID, gameID]);
+    
             if (result.affectedRows === 0) {
-                return res.status(404).json({ status: 'error', message: 'Transaction not found or already borrowed' });
+                return res.status(404).json({ status: 'error', message: 'Transaction not found or already updated' });
             }
-
+    
             res.status(200).json({ status: 'success', message: 'Transaction updated successfully' });
         } catch (error) {
             console.error('Error updating transaction status:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });
         }
-    },
+    },                
 
     async getStatus(req, res) {
         try {
             const gameId = req.params.gameId;
-
+    
             const sql = `
                 SELECT status
                 FROM borrowreturn
+                WHERE gameID = ?
             `;
-
-            const [rows] = await db.query(sql);
-
+    
+            const [rows] = await db.query(sql, [gameId]);
+    
             if (rows.length === 0) {
                 res.status(404).json({ error: 'Status not found', status: 'error' });
             } else {
                 res.json({ data: rows, status: 'success' });
             }
-
         } catch (error) {
             console.error('Error fetching status:', error);
             res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
-    },
+    }
 
 }
 
