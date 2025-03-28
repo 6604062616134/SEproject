@@ -31,21 +31,42 @@ function Dashboard() {
     };
 
     const handleAccept = async (transactionId) => {
-        try {
-            const response = await axios.put(`http://localhost:8000/br/transactions/${transactionId}/status`, {
-                status: 'available', // เปลี่ยนสถานะเป็น available
-            });
+        const userId = localStorage.getItem('userId');
+    
+        if (!userId) {
+            alert("User ID not found. Please log in.");
+            return;
+        }
 
+        const transaction = transactions.find(t => t.transactionID === transactionId);
+    
+        console.log("Transactions:", transactions); 
+        console.log("Selected Transaction:", transaction);
+    
+        if (!transaction || !transaction.game_id) {
+            console.error("Transaction is missing game_id:", transaction);
+            alert("Game ID is missing. Please check the data.");
+            return;
+        }
+    
+        try {
+            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+                gameID: transaction.game_id,
+                userID: userId,
+                status: 'available',
+            }, { withCredentials: true });
+    
+            console.log("API Response:", response.data);
+    
             if (response.data.status === 'success') {
-                // ลบแถวออกจาก state
-                setTransactions(transactions.filter(transaction => transaction.transactionID !== transactionId));
-                console.log(`Accepted transaction ID: ${transactionId}`);
+                alert('Borrow request sent successfully');
+                setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
-                alert('Failed to accept return request');
+                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
             }
         } catch (error) {
-            console.error('Error updating transaction status:', error);
-            alert('Error updating transaction status');
+            console.error('Error submitting borrow request:', error.response?.data || error.message);
+            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
         }
     };
 
