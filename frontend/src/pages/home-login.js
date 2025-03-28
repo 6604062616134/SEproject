@@ -56,10 +56,15 @@ function Homelogin() {
             });
 
             console.log("API Response:", response.data);
-            setBoardgames(response.data.data || []); // ตรวจสอบว่า response มีข้อมูลหรือไม่
+
+            if (response.data.data && response.data.data.length > 0) {
+                setBoardgames(response.data.data); // ตั้งค่า boardgames หากมีข้อมูล
+            } else {
+                setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างหากไม่มีข้อมูล
+            }
         } catch (error) {
             console.error("Error fetching boardgames:", error);
-            setBoardgames([]);
+            setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างในกรณีที่เกิดข้อผิดพลาด
         }
     };
 
@@ -299,26 +304,26 @@ function Homelogin() {
 
     const borrowSubmit = async (game) => {
         const userId = localStorage.getItem('userId');
-    
+
         if (!userId) {
             alert("User ID not found. Please log in.");
             return;
         }
-    
+
         if (!game || !game.boardgame_id) {
             alert("Game ID is missing.");
             return;
         }
-    
+
         try {
             const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
                 gameID: game.boardgame_id,
                 userID: userId,
                 status: 'borrowed',
             }, { withCredentials: true });
-    
+
             console.log("API Response:", response.data);
-    
+
             if (response.data.status === 'success') {
                 alert('Borrow request sent successfully');
             } else {
@@ -328,7 +333,7 @@ function Homelogin() {
             console.error('Error submitting borrow request:', error.response?.data || error.message);
             alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
         }
-    };       
+    };
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -598,11 +603,7 @@ function Homelogin() {
                                 </div>
                             ))
                         ) : (
-                            <div>
-                                {boardgames.map((game) => (
-                                    <div key={game.boardgame_id}>{game.boardgame_name}</div>
-                                ))}
-                            </div>
+                            <p className="text-2xl font-semibold text-black opacity-50">No results</p> // ข้อความแจ้งเตือนเมื่อไม่มีข้อมูล
                         )}
                     </div>
                 </div>
