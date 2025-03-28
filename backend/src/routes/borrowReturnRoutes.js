@@ -10,6 +10,7 @@ router.get('/borrowed/:userId', borrowReturnController.getBorrowedGames);
 
 // router.put('/transactions/:boardgame_id/borrow', borrowReturnController.updateTransactionStatus);
 router.put('/transactions/update', borrowReturnController.updateTransactionStatus);
+router.put('/transactions/:game_id/borrow', borrowReturnController.returnGame);
 
 // router.post('/create',authenticateToken, borrowReturnController.createTransaction);
 router.post('/create', borrowReturnController.createTransaction);

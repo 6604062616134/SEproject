@@ -131,96 +131,136 @@ const BorrowReturnController = {
 
     async getBorrowedGames(req, res) {
         try {
-            const userId = req.params.userId;
+            const { userId } = req.params; // ดึง userId จาก URL
+
+            console.log("Fetching borrowed games for user ID:", userId);
 
             const sql = `
                 SELECT 
-                borrowreturn.transactionID, 
-                boardgames.id AS game_id, 
-                boardgames.name AS game_name, 
-                category.name AS category_name, -- ดึงชื่อ category จากตาราง category
-                boardgames.level, 
-                boardgames.playerCounts, 
-                boardgames.borrowedTimes, 
-                borrowreturn.status, 
-                borrowreturn.borrowingDate, 
-                borrowreturn.returningDate
-            FROM borrowreturn
-            LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
-            LEFT JOIN category ON boardgames.categoryID = category.id -- เชื่อมตาราง category
-            WHERE borrowreturn.userID = ?
-            AND borrowreturn.status = 'borrowed'
-            ORDER BY borrowreturn.gameID ASC
+                    borrowreturn.transactionID,
+                    boardgames.id AS game_id,
+                    boardgames.name AS game_name,
+                    category.name AS category_name,
+                    boardgames.level,
+                    boardgames.playerCounts,
+                    boardgames.borrowedTimes,
+                    borrowreturn.status,
+                    borrowreturn.borrowingDate,
+                    borrowreturn.returningDate
+                FROM borrowreturn
+                LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
+                LEFT JOIN category ON boardgames.categoryID = category.id
+                WHERE borrowreturn.userID = ?
+                AND borrowreturn.status = 'borrowed'
+                ORDER BY borrowreturn.transactionID ASC
             `;
 
             const [rows] = await db.query(sql, [userId]);
 
             if (rows.length === 0) {
-                return res.status(404).json({ error: 'No borrowed games found', status: 'error' }); // เพิ่ม return
+                return res.status(404).json({ status: 'error', message: 'No borrowed games found' });
             }
 
-            // เพิ่ม imagePath ให้กับแต่ละบอร์ดเกม
-            const borrowedGamesWithImagePaths = rows.map(row => ({
+            const borrowedboardgamesWithImagePaths = rows.map(row => ({
                 ...row,
-                imagePath: `/images/${row.game_name.replace(/\s+/g, '_').toLowerCase()}.jpg` // สร้างพาธรูปภาพ
+                imagePath: `/images/${row.game_name.replace(/\s+/g, '_').toLowerCase()}.jpg`
             }));
+            console.log("Borrowed Games with Image Paths:", borrowedboardgamesWithImagePaths);
 
-            res.json({ data: borrowedGamesWithImagePaths, status: 'success' });
-
+            res.status(200).json({ status: 'success', data: borrowedboardgamesWithImagePaths });
         } catch (error) {
             console.error('Error fetching borrowed games:', error);
-            res.status(500).json({ error: 'Internal server error', status: 'error' });
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
         }
     },
 
     async updateTransactionStatus(req, res) {
         try {
             const { gameID, userID, status } = req.body;
-    
+
             console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
-    
+
             if (!gameID || !userID || !status) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-    
+
             // ตรวจสอบว่ามีข้อมูลเกมนี้อยู่ในฐานข้อมูลหรือไม่
             const [existingTransaction] = await db.query(`SELECT * FROM borrowreturn WHERE gameID = ?`, [gameID]);
-    
+
             if (existingTransaction.length === 0) {
                 return res.status(404).json({ status: 'error', message: 'Game not found' });
             }
-    
+
             // อัพเดต userID และสถานะ
             const sql = `
                 UPDATE borrowreturn
-                SET status = ?, userID = COALESCE(userID, ?), modified = NOW()
+                SET status = ?, userID = ?, modified = NOW()
                 WHERE gameID = ?
             `;
             const [result] = await db.query(sql, [status, userID, gameID]);
-    
+
             if (result.affectedRows === 0) {
                 return res.status(404).json({ status: 'error', message: 'Transaction not found or already updated' });
             }
-    
+
             res.status(200).json({ status: 'success', message: 'Transaction updated successfully' });
         } catch (error) {
             console.error('Error updating transaction status:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });
         }
-    },                
+    },
+
+    async returnGame(req, res) {
+        try {
+            const { game_id } = req.params; // ดึง game_id จาก URL
+            const { user_id, status } = req.body; // ดึง user_id และ status จาก body
+
+            console.log("Received game_id:", game_id);
+            console.log("Received user_id:", user_id);
+            console.log("Received status:", status);
+
+            if (!game_id || !user_id || !status) {
+                return res.status(400).json({ status: 'error', message: 'Missing required fields' });
+            }
+
+            // ตรวจสอบว่ามีข้อมูลเกมนี้อยู่ในฐานข้อมูลหรือไม่
+            const [existingTransaction] = await db.query(`SELECT * FROM borrowreturn WHERE gameID = ? AND userID = ?`, [game_id, user_id]);
+
+            if (existingTransaction.length === 0) {
+                return res.status(404).json({ status: 'error', message: 'Transaction not found' });
+            }
+
+            // อัพเดตสถานะในตาราง borrowreturn เป็น returning
+            const sql = `
+                UPDATE borrowreturn
+                SET status = ?, modified = NOW()
+                WHERE gameID = ? AND userID = ?
+            `;
+            const [result] = await db.query(sql, [status, game_id, user_id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ status: 'error', message: 'Failed to update transaction' });
+            }
+
+            res.status(200).json({ status: 'success', message: 'Game status updated to returning' });
+        } catch (error) {
+            console.error('Error returning game:', error);
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
+        }
+    },
 
     async getStatus(req, res) {
         try {
             const gameId = req.params.gameId;
-    
+
             const sql = `
                 SELECT status
                 FROM borrowreturn
                 WHERE gameID = ?
             `;
-    
+
             const [rows] = await db.query(sql, [gameId]);
-    
+
             if (rows.length === 0) {
                 res.status(404).json({ error: 'Status not found', status: 'error' });
             } else {

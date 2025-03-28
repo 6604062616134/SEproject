@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import NavbarLogin from '../components/navbar-login';
 import '../index.css';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 function Return() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,10 +30,13 @@ function Return() {
 
     const fetchBorrowedGames = async () => {
         try {
-            const userId = localStorage.getItem('userId');
+            const userId = localStorage.getItem('userId'); // รับ userId จาก localStorage
+            console.log("Fetching borrowed games for user ID:", userId);
+
             const response = await axios.get(`http://localhost:8000/br/borrowed/${userId}`);
             console.log("Borrowed Games Response:", response.data);
-            setBorrowedGames(response.data.data);
+
+            setBorrowedGames(response.data.data); // ตั้งค่า borrowedGames ด้วยข้อมูลที่ได้จาก API
         } catch (error) {
             console.error("Error fetching borrowed games:", error);
         }
@@ -72,24 +75,21 @@ function Return() {
 
     const handleReturn = async (game) => {
         try {
-            console.log("Game Data:", game); // ตรวจสอบข้อมูลเกม
-            console.log("Game ID:", game?.game_id); // ตรวจสอบ game_id
-            const userId = localStorage.getItem('userId'); // รับ userID จาก localStorage
+            console.log("Game Data:", game);
+            console.log("Game ID:", game?.game_id);
+            const userId = localStorage.getItem('userId');
             console.log("Request Data:", {
                 user_id: userId,
-                status: 'returned',
+                status: 'returning',
             });
-    
+
             const response = await axios.put(`http://localhost:8000/br/transactions/${game.game_id}/borrow`, {
                 user_id: userId,
-                status: 'returned',
+                status: 'returning',
             }, { withCredentials: true });
-    
+
             if (response.data.status === 'success') {
-                alert('Return request sent successfully');
-                window.location.reload(); // รีเฟรชหน้าเว็บ
-            } else {
-                alert('Return request failed');
+                window.location.reload();
             }
         } catch (error) {
             console.error('Error returning boardgame:', error);
@@ -99,7 +99,7 @@ function Return() {
 
     const handleCancel = () => {
         if (formRef.current) {
-            formRef.current.reset(); // รีเซ็ตฟอร์ม
+            formRef.current.reset();
         }
         setBoardgameName('');
         setSelectedCategory('Select Category');
@@ -145,36 +145,40 @@ function Return() {
                         </div>
                         <div className='flex flex-col mt-10 gap-4'>
                             <div className="flex flex-row flex-wrap gap-4 items-start">
-                                {borrowedGames.map((game) => (
-                                    <div key={game.transactionID} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
-                                        <img
-                                            src={game.imagePath}
-                                            alt={game.game_name}
-                                            className="w-[280px] h-[220px] object-fill"
-                                            style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }}
-                                            onError={(e) => {
-                                                e.target.src = '/images/default.jpg'; // รูปภาพสำรองในกรณีที่โหลดรูปไม่ได้
-                                            }}
-                                        />
-                                        <div className="mt-3">
-                                            <p className="text-xl font-semibold ml-5">{game.game_name}</p>
-                                            <p className="text-black ml-5">{game.category_name}</p>
-                                            <p className="text-black ml-5">level : {game.level}</p>
-                                            <p className="text-black ml-5">players : {game.playerCounts} persons</p>
-                                            <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <div>
-                                                    <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
+                                {borrowedGames.length > 0 ? (
+                                    borrowedGames.map((game) => (
+                                        <div key={game.transactionID} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
+                                            <img
+                                                src={game.imagePath}
+                                                alt={game.boardgame_name}
+                                                className="w-[280px] h-[220px] object-fill"
+                                                style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }}
+                                                onError={(e) => {
+                                                    e.target.src = '/images/default.jpg'; // แสดงภาพ default หากโหลดภาพไม่ได้
+                                                }}
+                                            />
+                                            <div className="mt-3">
+                                                <p className="text-xl font-semibold ml-5">{game.game_name}</p>
+                                                <p className="text-black ml-5">{game.category_name}</p>
+                                                <p className="text-black ml-5">level : {game.level}</p>
+                                                <p className="text-black ml-5">players : {game.playerCounts} persons</p>
+                                                <div className="flex justify-between gap-4 items-center ml-5 mr-2">
+                                                    <div>
+                                                        <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
+                                                    </div>
+                                                    <button
+                                                        className="btn-search"
+                                                        onClick={() => openConfirmModal(game)}
+                                                    >
+                                                        Return
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    className="btn-search"
-                                                    onClick={() => openConfirmModal(game)} // เปิด modal พร้อมส่งข้อมูลเกม
-                                                >
-                                                    Return
-                                                </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <p className="text-xl font-semibold text-black opacity-50">No borrowed boardgames</p>
+                                )}
                             </div>
                         </div>
                         {isConfirmModalOpen && (
@@ -185,13 +189,13 @@ function Return() {
                                     <div className="flex justify-end gap-3 mt-6">
                                         <button
                                             className="btn-custom"
-                                            onClick={closeConfirmModal} // ปิด modal
+                                            onClick={closeConfirmModal}
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             className="btn-search"
-                                            onClick={() => handleReturn(gameToReturn)} // ดำเนินการคืนเกม
+                                            onClick={() => handleReturn(gameToReturn)}
                                         >
                                             Confirm
                                         </button>

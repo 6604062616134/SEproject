@@ -32,14 +32,20 @@ function Dashboard() {
 
     const handleAccept = async (transactionId) => {
         try {
-            await axios.put(`http://localhost:8000/br/transactions/${transactionId}/status`, {
-                status: 'available'
+            const response = await axios.put(`http://localhost:8000/br/transactions/${transactionId}/status`, {
+                status: 'available', // เปลี่ยนสถานะเป็น available
             });
-            // ลบแถวออกจาก state
-            setTransactions(transactions.filter(transaction => transaction.transactionID !== transactionId));
-            console.log(`Accepted transaction ID: ${transactionId}`);
+    
+            if (response.data.status === 'success') {
+                // ลบแถวออกจาก state
+                setTransactions(transactions.filter(transaction => transaction.transactionID !== transactionId));
+                console.log(`Accepted transaction ID: ${transactionId}`);
+            } else {
+                alert('Failed to accept return request');
+            }
         } catch (error) {
             console.error('Error updating transaction status:', error);
+            alert('Error updating transaction status');
         }
     };
 
