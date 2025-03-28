@@ -12,6 +12,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const [hasNewNotification, setHasNewNotification] = useState(true);
     const [username, setUsername] = useState('');
     const [notifications, setNotifications] = useState([]);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -49,6 +50,9 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
             }
         }
     };
+
+    const openLogoutModal = () => setIsLogoutModalOpen(true);
+    const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
     const logout = async () => {
         try {
@@ -117,13 +121,15 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                         )}
                     </div>
                 </div>
-
+    
                 {/* Menu */}
                 <div className={`fixed mt-20 top-0 left-0 w-1/6 bg-[#f2f2f2] text-white transition-transform duration-300 shadow-2xl ${isMenuOpen ? "translate-x-0" : "-translate-x-full"} h-screen z-50`}>
                     <NavLink to="/home-login" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Home</NavLink>
                     <NavLink to="/return" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">Return</NavLink>
                     <NavLink to="/history" className="block px-6 py-4 text-black hover:bg-black font-medium hover:text-white">History</NavLink>
-                    <button onClick={logout} className="block px-6 text-black font-normal hover:underline cursor-pointer mt-72">Logout <span style={{ textDecoration: 'none' }}>-{'>'}</span></button>
+                    <button onClick={openLogoutModal} className="block px-6 text-black font-normal hover:underline cursor-pointer mt-72">
+                        Logout <span style={{ textDecoration: 'none' }}>-{'>'}</span>
+                    </button>
                     <p className="block px-6 text-black font-semibold mt-4">Contact us</p>
                     <div className="flex px-6 mt-4 gap-4">
                         <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
@@ -139,6 +145,30 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                     <p className="text-black font-light px-6 mt-2">02-555-2000 , 1111</p>
                 </div>
             </div>
+    
+            {/* ป็อปอัปยืนยัน Logout */}
+            {isLogoutModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '20px' }}>
+                        <h3 className="font-bold text-xl">Confirm Logout</h3>
+                        <p className="mt-4">Are you sure you want to log out?</p>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                className="btn-custom bg-gray-300 text-black px-4 py-2 rounded"
+                                onClick={closeLogoutModal}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn-custom bg-red-500 text-white px-4 py-2 rounded"
+                                onClick={logout}
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
