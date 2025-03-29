@@ -113,22 +113,22 @@ body {
   border: 1px solid rgb(236, 63, 63); 
 }
 
-.btn-logoutAdmin {
+.btn-reqort {
   background-color: rgb(255, 255, 255);
   color: rgb(0, 0, 0); /* สีตัวอักษร */
-  padding: 6px 15px; /* ระยะห่างภายในปุ่ม */
+  padding: 8px 12px; /* ระยะห่างภายในปุ่ม */
   text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
   text-decoration: none; /* ไม่มีการขีดเส้นใต้ */
   display: inline-block; /* แสดงเป็นบล็อกแบบอินไลน์ */
   font-size: 16px; /* ขนาดตัวอักษร */
   margin: 4px 2px; /* ระยะห่างภายนอกปุ่ม */
   cursor: pointer; /* เปลี่ยนเคอร์เซอร์เมื่อ hover */
-  border-radius: 24px; /* ขอบโค้งมน */
+  border-radius: 23px; /* ขอบโค้งมน */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s; /* เพิ่มการเปลี่ยนสีพื้นหลังเมื่อ hover */
 }
 
-.btn-logoutAdmin:hover {
+.btn-report:hover {
   background-color: transparent; /* สีพื้นหลังเมื่อ hover */
   color: rgb(255, 255, 255);
   border: 1px solid rgb(255, 255, 255); 

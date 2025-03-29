@@ -5,6 +5,7 @@ import axios from 'axios';
 function NavbarAdmin({ isMenuOpen, toggleMenu }) {
     const navigate = useNavigate();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -20,6 +21,9 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
     const openLogoutModal = () => setIsLogoutModalOpen(true);
     const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
+    const openReportModal = () => setIsReportModalOpen(true);
+    const closeReportModal = () => setIsReportModalOpen(false);
+
     return (
         <div className="font-sans">
             <div className="bg-black text-white p-5 fixed top-0 left-0 w-full z-50">
@@ -30,9 +34,12 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                         </NavLink>
                         <p className='text-right text-xs'>KMUTNB</p>
                     </div>
-                    <div className='flex gap-5 p-4' style={{ position: 'absolute', right: '0' }}>
-                        <p className='py-4 cursor-pointer'>Admin</p>
-                        <button onClick={openLogoutModal} className="btn-logoutAdmin">
+                    <div className='flex gap-5 items-center p-4' style={{ position: 'absolute', right: '0' }}>
+                        <p className='font-bold text-white cursor-pointer'>Admin</p>
+                        <button onClick={openReportModal} className="underline text-white font-light cursor-pointer">
+                            View Reports
+                        </button>
+                        <button onClick={openLogoutModal} className="underline text-white font-light cursor-pointer">
                             Logout
                         </button>
                     </div>
@@ -54,6 +61,33 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                                     onClick={handleLogout}
                                 >
                                     Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {isReportModalOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <div className="bg-white p-6 rounded-lg w-[400px]" style={{ borderRadius: '20px' }}>
+                            <h3 className="font-bold text-xl text-black">User Reports</h3>
+                            <ul className="mt-4">
+                                {/* ตัวอย่างข้อมูลรีพอร์ต */}
+                                <li className="border-b py-2">
+                                    <p className="font-semibold">Report 1</p>
+                                    <p className="text-sm text-gray-600">This is a sample report from a user.</p>
+                                </li>
+                                <li className="border-b py-2">
+                                    <p className="font-semibold">Report 2</p>
+                                    <p className="text-sm text-gray-600">Another sample report from a user.</p>
+                                </li>
+                            </ul>
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    className="btn-custom bg-gray-300 text-black px-4 py-2 rounded"
+                                    onClick={closeReportModal}
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>
