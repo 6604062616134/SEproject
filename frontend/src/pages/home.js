@@ -517,7 +517,7 @@ function Home() {
                     )}
 
                     {/* ส่วนแสดงผลเสิร์ช */}
-                    <div className="flex flex-row flex-wrap gap-4 justify-center mt-10 mb-12">
+                    <div className="flex flex-row flex-wrap gap-6 justify-center mt-10 mb-12">
                         {boardgames.length > 0 ? (
                             boardgames.map((game) => (
                                 <div key={game.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
@@ -529,7 +529,7 @@ function Home() {
                                         <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
                                             <div>
-                                                <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
+                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
                                             </div>
                                             <button
                                                 className="btn-search"
@@ -542,11 +542,7 @@ function Home() {
                                 </div>
                             ))
                         ) : (
-                            <div>
-                                {boardgames.map((game) => (
-                                    <div key={game.boardgame_id}>{game.boardgame_name}</div>
-                                ))}
-                            </div>
+                            <p className="text-2xl font-semibold text-black opacity-50">No results</p> // ข้อความแจ้งเตือนเมื่อไม่มีข้อมูล
                         )}
                     </div>
                 </div>
