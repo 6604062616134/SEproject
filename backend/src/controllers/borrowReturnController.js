@@ -199,16 +199,16 @@ const BorrowReturnController = {
             const [stockResult] = await db.query(updateStockSql, [gameID]);
 
             if (stockResult.affectedRows === 0) {
-                return res.status(400).json({ status: 'error', message: 'Stock is already 0 or game not found' });
+                return res.status(400).json({ status: 'error', message: 'Not available now' });
             }
-    
+
             // ตรวจสอบค่า stock หลังจากลดจำนวน
             const [updatedGame] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
-    
+
             if (updatedGame.length === 0) {
                 return res.status(404).json({ status: 'error', message: 'Game not found after stock update' });
             }
-    
+
             const currentStock = updatedGame[0].stock;
             const newStatus = currentStock === 0 ? 'borrowed' : 'available';
 
@@ -222,6 +222,14 @@ const BorrowReturnController = {
             if (result.affectedRows === 0) {
                 return res.status(404).json({ status: 'error', message: 'Transaction not found or already updated' });
             }
+
+            // เพิ่มค่า borrowedTimes ในตาราง boardgames
+            const updateBorrowedTimesSql = `
+                UPDATE boardgames
+                SET borrowedTimes = borrowedTimes + 1
+                WHERE id = ?
+            `;
+            await db.query(updateBorrowedTimesSql, [gameID]);
 
             res.status(200).json({ status: 'success', message: 'Transaction updated successfully' });
         } catch (error) {
