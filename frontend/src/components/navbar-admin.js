@@ -31,8 +31,8 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                         <p className='text-right text-xs'>KMUTNB</p>
                     </div>
                     <div className='flex gap-5 p-4' style={{ position: 'absolute', right: '0' }}>
-                        <p className='cursor-pointer'>Admin</p>
-                        <button onClick={openLogoutModal} className="btn-logout">
+                        <p className='py-4 cursor-pointer'>Admin</p>
+                        <button onClick={openLogoutModal} className="btn-logoutAdmin">
                             Logout
                         </button>
                     </div>
