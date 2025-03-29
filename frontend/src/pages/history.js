@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavbarLogin from '../components/navbar-login';
 import '../index.css';
-import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
@@ -16,7 +15,11 @@ function History() {
         const fetchTransactions = async () => {
             try {
                 const userId = localStorage.getItem('userId');
-                const response = await axios.get(`http://localhost:8000/br/transactions/${userId}`);
+
+                console.log('User ID:', userId); // ตรวจสอบว่า userId ถูกต้องหรือไม่
+
+                const response = await axios.get(`http://localhost:8000/history?userID=${userId}`);
+
                 setTransactions(response.data.data); // เก็บข้อมูลที่ได้รับใน state
             } catch (error) {
                 console.error('Error fetching transactions:', error);
@@ -40,7 +43,7 @@ function History() {
     };
 
     const filteredTransactions = transactions.filter((transaction) =>
-        transaction.game_name.toLowerCase().includes(searchTerm.toLowerCase())
+        transaction.name && transaction.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

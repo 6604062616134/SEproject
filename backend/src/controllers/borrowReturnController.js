@@ -300,15 +300,6 @@ const BorrowReturnController = {
         }
     },
 
-    // async acceptReturning(req, res) {
-    //     try {
-
-    //     } catch (error) {
-    //         console.error('Error accepting returning:', error);
-    //         res.status(500).json({ error: 'Internal server error', status: 'error' });
-    //     }
-    // }
-
 }
 
 module.exports = BorrowReturnController;
