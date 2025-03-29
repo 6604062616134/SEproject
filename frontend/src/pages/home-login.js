@@ -4,8 +4,6 @@ import NavbarLogin from '../components/navbar-login';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import '../index.css';
-import { NavLink } from 'react-router-dom';
-import { mode } from 'mathjs';
 
 function Homelogin() {
     const [boardgames, setBoardgames] = useState([]);
@@ -279,26 +277,31 @@ function Homelogin() {
             alert("Please log in to borrow a board game.");
             return;
         }
-
+    
         const day = document.querySelector('input[placeholder="DD"]').value;
         const month = document.querySelector('input[placeholder="MM"]').value;
         const year = document.querySelector('input[placeholder="YY"]').value;
-
-        if (!selectedHour || selectedHour === 'Select Hour') {
-            if (!day || !month || !year) {
-                alert("Please select an hour or fill in the booking date (DD/MM/YY).");
-                return;
+    
+        // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
+        if (day && month && year) {
+            // เรียกฟังก์ชัน reservedSubmit หากมีการกรอกวันที่
+            if (selectedGame && selectedGame.boardgame_id) {
+                await reservedSubmit(selectedGame);
+                setSelectedGame(null);
+            } else {
+                alert("Error: Board game ID is missing.");
             }
-        }
-
-        console.log("Selected Game:", selectedGame); // ตรวจสอบค่า selectedGame
-
-        if (selectedGame && selectedGame.boardgame_id) {
-            await borrowSubmit(selectedGame); // ส่ง selectedGame ไปยัง borrowSubmit
-            setSelectedGame(null);
+        } else if (selectedHour && selectedHour !== 'Select Hour') {
+            // เรียกฟังก์ชัน borrowSubmit หากเลือกจำนวนชั่วโมง
+            if (selectedGame && selectedGame.boardgame_id) {
+                await borrowSubmit(selectedGame);
+                setSelectedGame(null);
+            } else {
+                alert("Error: Board game ID is missing.");
+            }
         } else {
-            console.error("Error: selectedGame is null or boardgame_id is undefined");
-            alert("Error: Board game ID is missing.");
+            // แจ้งเตือนหากไม่มีการกรอกข้อมูลที่จำเป็น
+            alert("Please select an hour or fill in the booking date (DD/MM/YY).");
         }
     };
 
@@ -332,6 +335,39 @@ function Homelogin() {
         } catch (error) {
             console.error('Error submitting borrow request:', error.response?.data || error.message);
             alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const reservedSubmit = async (game) => {
+        // เมื่อมีการอินพุทข้อมูลจองบอร์ดเกมให้เรียกใช้ฟังก์ชันนี้
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            alert("User ID not found. Please log in.");
+            return;
+        }
+        if (!game || !game.boardgame_id) {
+            alert("Game ID is missing.");
+            return;
+        }
+
+        try {
+            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+                gameID: game.boardgame_id,
+                userID: userId,
+                status: 'reserved',
+            }, { withCredentials: true });
+
+            console.log("API Response:", response.data);
+
+            if (response.data.status === 'success') {
+                alert('Reservation request sent successfully');
+            } else {
+                alert(`Reservation request failed: ${response.data.message || "Unknown error"}`);
+            }
+        }
+        catch (error) {
+            console.error('Error submitting reservation request:', error.response?.data || error.message);
+            alert(`Error submitting reservation request: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -510,7 +546,7 @@ function Homelogin() {
                                 <div className="flex row gap-4 mt-4">
                                     <p className="text-lg">Status:</p>
                                     <p className={`text-lg font-semibold ${status === 'available' ? 'text-green-500' : 'text-red-500'}`}>
-                                        {status}
+                                        {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
                                 </div>
                                 <p className="text-lg pt-2 pb-2">Borrow</p>
