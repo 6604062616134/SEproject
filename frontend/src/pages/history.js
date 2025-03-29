@@ -8,10 +8,9 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 function History() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [transactions, setTransactions] = useState([]); // เพิ่ม state สำหรับเก็บข้อมูลการยืมคืน
+    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
-        // Fetch API มาแสดงประวัติการยืมคืนของผู้ใช้ที่ล็อกอินอยู่
         const fetchTransactions = async () => {
             try {
                 const userId = localStorage.getItem('userId');
@@ -19,6 +18,8 @@ function History() {
                 console.log('User ID:', userId); // ตรวจสอบว่า userId ถูกต้องหรือไม่
 
                 const response = await axios.get(`http://localhost:8000/history?userID=${userId}`);
+
+                console.log('Response Data:', response.data); // ตรวจสอบข้อมูลที่ได้รับจาก API
 
                 setTransactions(response.data.data); // เก็บข้อมูลที่ได้รับใน state
             } catch (error) {
@@ -46,6 +47,8 @@ function History() {
         transaction.name && transaction.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    console.log('Filtered Transactions:', filteredTransactions); // ตรวจสอบข้อมูลหลังการกรอง
+
     return (
         <div>
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
@@ -69,28 +72,36 @@ function History() {
                             {/* <button className='btn-search'>Search</button> */}
                         </div>
                         {/* ตารางแสดงข้อมูล */}
-                        <table className='table-auto w-[800px] mt-8'>
-                            <thead style={{ borderBottom: '2px solid black' }}>
-                                <tr className='text-left'>
-                                    <th className="text-left">Boardgame's name</th>
-                                    <th className="text-right pr-8">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody className='text-left text-black'>
-                                {filteredTransactions.length > 0 ? (
-                                    filteredTransactions.map((transaction, index) => (
-                                        <tr key={index} style={{ borderBottom: '1px solid black' }}>
-                                            <td className='pt-4 pb-4'>{transaction.game_name}</td>
-                                            <td className='pt-4 pb-4 text-right'>{formatDate(transaction.borrowingDate)}</td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="2" className="text-center pt-4 pb-4 text-black opacity-50 font-light">No results</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                        <div className="flex flex-row flex-wrap gap-4 justify-center mt-10">
+                            {filteredTransactions.length > 0 ? (
+                                filteredTransactions.map((transaction, index) => (
+                                    <div
+                                        key={index}
+                                        className="bg-transparent shadow-lg p-3"
+                                        style={{ border: '1px solid black', borderRadius: '38px', width: '280px' }}
+                                    >
+                                        <img
+                                            src={transaction.imagePath || '/images/default.jpg'}
+                                            alt={transaction.game_name}
+                                            className="w-[280px] h-[220px] object-fill"
+                                            style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }}
+                                            onError={(e) => {
+                                                e.target.src = '/images/default.jpg'; // แสดงภาพ default หากโหลดภาพไม่ได้
+                                            }}
+                                        />
+                                        <div className="mt-3">
+                                            <p className="text-xl font-semibold ml-5">{transaction.name}</p>
+                                            <p className="text-black ml-5">{transaction.category_name}</p>
+                                            <p className="text-black ml-5">Level: {transaction.level}</p>
+                                            <p className="text-black ml-5">Players: {transaction.playerCounts} persons</p>
+                                            <p className="text-black ml-5">Borrowed Date: {formatDate(transaction.modified)}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xl font-semibold text-black opacity-50">No results</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

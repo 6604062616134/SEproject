@@ -163,7 +163,7 @@ const BorrowReturnController = {
                 ...row,
                 imagePath: `/images/${row.game_name.replace(/\s+/g, '_').toLowerCase()}.jpg`
             }));
-            console.log("Borrowed Games with Image Paths:", borrowedboardgamesWithImagePaths);
+            //console.log("Borrowed Games with Image Paths:", borrowedboardgamesWithImagePaths);
 
             res.status(200).json({ status: 'success', data: borrowedboardgamesWithImagePaths });
         } catch (error) {

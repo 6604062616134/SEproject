@@ -23,7 +23,15 @@ const HistoryController = {
                 return res.status(404).json({ error: 'History not found', status: 'error' });
             }
 
-            res.json({ data: rows, status: 'success' });
+            const historyWithImagePaths = rows.map(row => ({
+                ...row,
+                imagePath: `/images/${row.name.replace(/\s+/g, '_').toLowerCase()}.jpg`
+            }));
+            //console.log("Borrowed Games with Image Paths:", historyWithImagePaths);
+
+            res.status(200).json({ status: 'success', data: historyWithImagePaths });
+
+            // res.json({ data: rows, status: 'success' });
         } catch (error) {
             console.error('Error fetching history:', error);
             res.status(500).json({ error: 'Internal server error', status: 'error' });
