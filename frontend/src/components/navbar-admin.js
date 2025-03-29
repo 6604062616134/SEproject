@@ -7,7 +7,6 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [reports, setReports] = useState([]);
-    const [selectedReports, setSelectedReports] = useState([]);
 
     const handleLogout = async () => {
         try {
@@ -20,37 +19,40 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
         }
     };
 
-    const toggleReportSelection = (reportId) => {
-        setSelectedReports((prevSelected) => {
-            if (prevSelected.includes(reportId)) {
-                return prevSelected.filter((id) => id !== reportId);
-            } else {
-                return [...prevSelected, reportId];
-            }
-        });
+    const openReportModal = async () => {
+        try {
+            await fetchReports(); // ดึงข้อมูลรายงานใหม่
+            setIsReportModalOpen(true); // เปิด Modal
+        } catch (error) {
+            console.error('Error fetching reports:', error);
+            alert('Failed to fetch reports. Please try again.');
+        }
     };
 
-    const handleDone = () => {
-        if (selectedReports.length === 0) {
-            alert('Please select at least one report before clicking Done.');
-            return;
-        }
+    const handleDone = async (reportId, message) => {
+        try {
+            const response = await axios.put('http://localhost:8000/reports/updateReport', {
+                message,
+                status: 'done',
+            }, { withCredentials: true });
 
-        // ลบรายงานที่เลือกออกจากรายการที่แสดง
-        setReports((prevReports) => prevReports.filter((report) => !selectedReports.includes(report.id)));
-        // ล้างรายการที่เลือก
-        setSelectedReports([]);
-        alert('Selected reports have been cleared from the list.');
+            if (response.data.status === 'success') {
+                // ดึงข้อมูลรายงานใหม่หลังจากอัปเดตสถานะสำเร็จ
+                await fetchReports();
+                alert('Report marked as done.');
+            } else {
+                alert(`Failed to update report: ${response.data.message || "Unknown error"}`);
+            }
+
+        } catch (error) {
+            console.error('Error updating report:', error);
+            alert('Failed to update report. Please try again.');
+        }
     };
 
     const openLogoutModal = () => setIsLogoutModalOpen(true);
     const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
-    const openReportModal = () => {
-        fetchReports(); // เรียก fetchReports เพื่อดึงข้อมูลรีพอร์ต
-        setIsReportModalOpen(true); // เปิด Modal
-    };
-    const closeReportModal = () => setIsReportModalOpen(false);
 
     const fetchReports = async () => {
         try {
@@ -123,19 +125,13 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                             <ul className="mt-4">
                                 {reports.length > 0 ? (
                                     reports.map((report, index) => (
-                                        <li key={index} className="border-b py-2 flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                className="mr-2"
-                                                checked={selectedReports.includes(report.id)}
-                                                onChange={() => toggleReportSelection(report.id)}
-                                            />
+                                        <li key={report.id || index} className="border-b py-2 flex items-center justify-between">
                                             <div>
                                                 <p className="font-semibold text-black">
-                                                    Email : {report.email}
+                                                    Email: {report.email}
                                                     <button
                                                         className="ml-2 text-black underline text-sm"
-                                                        onClick={() => copyToClipboard(report.email)}
+                                                        onClick={() => navigator.clipboard.writeText(report.email)}
                                                     >
                                                         Copy
                                                     </button>
@@ -143,6 +139,12 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                                                 <p className="text-sm text-black">{report.message}</p>
                                                 <p className="text-xs text-gray-400">Date: {new Date(report.created).toLocaleString()}</p>
                                             </div>
+                                            <button
+                                                className="btn-search bg-green-500 text-white px-3 py-1 rounded"
+                                                onClick={() => handleDone(report.id, report.message)} // ส่ง ID และ Email ของรายงานนั้น
+                                            >
+                                                Done
+                                            </button>
                                         </li>
                                     ))
                                 ) : (
@@ -152,15 +154,9 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                             <div className="flex justify-end gap-3 mt-6">
                                 <button
                                     className="btn-custom bg-gray-300 text-black px-4 py-2 rounded"
-                                    onClick={closeReportModal}
+                                    onClick={() => setIsReportModalOpen(false)}
                                 >
                                     Close
-                                </button>
-                                <button
-                                    className="btn-search"
-                                    onClick={handleDone}
-                                >
-                                    Done
                                 </button>
                             </div>
                         </div>

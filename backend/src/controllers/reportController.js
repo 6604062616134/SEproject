@@ -15,7 +15,7 @@ const ReportController = {
             const created = new Date();
     
             // บันทึกรีพอร์ตลงในฐานข้อมูล
-            await db.query('INSERT INTO reports (email, message, created) VALUES (?, ?, ?)', [email, message, created]);
+            await db.query('INSERT INTO reports (email, message, created, status) VALUES (?, ?, ?, ?)', [email, message, created, 'pending']);
     
             res.status(201).json({ message: 'Report submitted successfully', status: 'success' });
         } catch (error) {
@@ -26,13 +26,37 @@ const ReportController = {
 
     async getReports(req, res) {
         try {
-            const [rows] = await db.query('SELECT * FROM reports ORDER BY created DESC');
+            // ดึงเฉพาะรายงานที่มีสถานะเป็น 'pending'
+            const [rows] = await db.query('SELECT * FROM reports WHERE status = "pending" ORDER BY created DESC');
             res.json({ data: rows, status: 'success' });
         } catch (error) {
             console.error('Error fetching reports:', error);
             res.status(500).json({ error: 'Internal server error', status: 'error' });
         }
     },
+
+    async updateReport(req, res) {
+        try {
+            const { message, status } = req.body;
+    
+            // ตรวจสอบว่าอีเมลและสถานะถูกส่งมาหรือไม่
+            if (!message || !status) {
+                return res.status(400).json({ error: 'message and status are required', status: 'error' });
+            }
+    
+            // อัปเดตสถานะของรีพอร์ตในฐานข้อมูลโดยใช้เงื่อนไขอีเมล
+            const [result] = await db.query('UPDATE reports SET status = ? WHERE message = ?', [status, message]);
+    
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'No report found for the provided email', status: 'error' });
+            }
+    
+            res.json({ message: 'Report updated successfully', status: 'success' });
+        } catch (error) {
+            console.error('Error updating report:', error);
+            res.status(500).json({ error: 'Internal server error', status: 'error' });
+        }
+    }
 }
 
 module.exports = ReportController;

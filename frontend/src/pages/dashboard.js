@@ -52,8 +52,8 @@ function Dashboard() {
 
         const transaction = transactions.find(t => t.transactionID === transactionId);
 
-        console.log("Transactions:", transactions);
-        console.log("Selected Transaction:", transaction);
+        // console.log("Transactions:", transactions);
+        // console.log("Selected Transaction:", transaction);
 
         if (!transaction || !transaction.game_id) {
             console.error("Transaction is missing game_id:", transaction);
@@ -68,7 +68,7 @@ function Dashboard() {
                 status: 'available',
             }, { withCredentials: true });
 
-            console.log("API Response:", response.data);
+            // console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));
@@ -101,6 +101,7 @@ function Dashboard() {
         }
 
         try {
+            // เรียกเส้นโนติ แจ้งเตือนว่าการคืนถูกปฏิเสธ
             const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
                 gameID: transaction.game_id,
                 userID: userId,

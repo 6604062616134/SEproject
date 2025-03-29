@@ -165,9 +165,6 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                         <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
                             <FontAwesomeIcon icon={faInstagram} />
                         </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
-                            <FontAwesomeIcon icon={faLine} />
-                        </a>
                     </div>
                     <p className="text-black font-light px-6 mt-2">02-555-2000 , 1111</p>
                 </div>
