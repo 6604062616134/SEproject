@@ -9,6 +9,8 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 function Dashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [transactions, setTransactions] = useState([]);
+    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
     useEffect(() => {
         // Fetch API มาแสดงประวัติการยืมคืนที่มีสถานะ returning
@@ -26,38 +28,48 @@ function Dashboard() {
         fetchTransactions();
     }, []);
 
+    const openRejectModal = (transactionId) => {
+        setSelectedTransactionId(transactionId);
+        setIsRejectModalOpen(true);
+    };
+
+    const closeRejectModal = () => {
+        setSelectedTransactionId(null);
+        setIsRejectModalOpen(false);
+    };
+
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
     const handleAccept = async (transactionId) => {
         const userId = localStorage.getItem('userId');
-    
+
         if (!userId) {
             alert("User ID not found. Please log in.");
             return;
         }
 
         const transaction = transactions.find(t => t.transactionID === transactionId);
-    
-        console.log("Transactions:", transactions); 
+
+        console.log("Transactions:", transactions);
         console.log("Selected Transaction:", transaction);
-    
+
         if (!transaction || !transaction.game_id) {
             console.error("Transaction is missing game_id:", transaction);
             alert("Game ID is missing. Please check the data.");
             return;
         }
-    
+
         try {
             const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
                 gameID: transaction.game_id,
                 userID: userId,
                 status: 'available',
             }, { withCredentials: true });
-    
+
             console.log("API Response:", response.data);
-    
+
             if (response.data.status === 'success') {
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
@@ -70,20 +82,41 @@ function Dashboard() {
     };
 
     const handleReject = async (transactionId) => {
+        const userId = localStorage.getItem('userId');
+
+        if (!userId) {
+            alert("User ID not found. Please log in.");
+            return;
+        }
+
+        const transaction = transactions.find(t => t.transactionID === transactionId);
+
+        console.log("Transactions:", transactions);
+        console.log("Selected Transaction:", transaction);
+
+        if (!transaction || !transaction.game_id) {
+            console.error("Transaction is missing game_id:", transaction);
+            alert("Game ID is missing. Please check the data.");
+            return;
+        }
+
         try {
-            const response = await axios.put(`http://localhost:8000/br/transactions/${transactionId}/status`, {
-                status: 'rejected',
-            });
+            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+                gameID: transaction.game_id,
+                userID: userId,
+                status: 'available',
+            }, { withCredentials: true });
+
+            console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
-                setTransactions(transactions.filter(transaction => transaction.transactionID !== transactionId));
-                console.log(`Rejected transaction ID: ${transactionId}`);
+                setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
-                alert('Failed to reject return request');
+                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
             }
         } catch (error) {
-            console.error('Error updating transaction status:', error);
-            alert('Error updating transaction status');
+            console.error('Error submitting borrow request:', error.response?.data || error.message);
+            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -143,7 +176,7 @@ function Dashboard() {
                                             <td className='pt-4 pb-4'>{formatDate(transaction.borrowingDate)}</td>
                                             <td className='pt-4 pb-4 gap-4'>
                                                 <button className='btn-accept' onClick={() => handleAccept(transaction.transactionID)}>Accept</button>
-                                                <button className='btn-reject' onClick={() => handleReject(transaction.transactionID)}>Reject</button>
+                                                <button className='btn-reject' onClick={() => openRejectModal(transaction.transactionID)}>Reject</button>
                                             </td>
                                         </tr>
                                     ))
@@ -154,6 +187,32 @@ function Dashboard() {
                                 )}
                             </tbody>
                         </table>
+
+                        {isRejectModalOpen && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '20px' }}>
+                                    <h3 className="font-bold text-xl text-black">Confirm Reject</h3>
+                                    <p className="mt-4 text-black">Are you sure you want to reject this transaction?</p>
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            className="btn-custom bg-gray-300 text-black px-4 py-2 rounded"
+                                            onClick={closeRejectModal}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="btn-search"
+                                            onClick={() => {
+                                                handleReject(selectedTransactionId);
+                                                closeRejectModal();
+                                            }}
+                                        >
+                                            Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
