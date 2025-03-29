@@ -133,3 +133,19 @@ body {
   color: rgb(255, 255, 255);
   border: 1px solid rgb(255, 255, 255); 
 }
+
+input[type="checkbox"] {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #000;
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #000000;
+  border-color: #000000;
+}

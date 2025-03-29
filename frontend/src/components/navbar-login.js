@@ -14,6 +14,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
     const [notifications, setNotifications] = useState([]);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [reportMessage, setReportMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -79,6 +80,24 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
         if (!isOpenNoti) {
             fetchNotification();
             setIsOpenNoti(true);
+        }
+    };
+
+    const submitReport = async () => {
+        try {
+            const userID = localStorage.getItem('userId'); // ดึง userID จาก localStorage
+            if (!userID) {
+                alert('User ID not found. Please log in again.');
+                return;
+            }
+    
+            await axios.post('http://localhost:8000/reports/createReport', { userID, message: reportMessage }, { withCredentials: true });
+            alert('Report submitted successfully!');
+            setReportMessage('');
+            closeReportModal();
+        } catch (error) {
+            console.error('Error submitting report:', error);
+            alert('Failed to submit report. Please try again.');
         }
     };
 
@@ -186,6 +205,8 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             className="w-full mt-4 p-2 border border-black rounded"
                             rows="5"
                             placeholder="Write your report or request for help here..."
+                            value={reportMessage}
+                            onChange={(e) => setReportMessage(e.target.value)} // อัปเดต state
                         ></textarea>
                         <div className="flex justify-end gap-3 mt-6">
                             <button
@@ -196,10 +217,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             </button>
                             <button
                                 className="btn-search"
-                                onClick={() => {
-                                    alert('Report submitted!');
-                                    closeReportModal();
-                                }}
+                                onClick={submitReport} // เรียกใช้ฟังก์ชัน submitReport
                             >
                                 Submit
                             </button>

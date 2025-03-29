@@ -31,6 +31,9 @@ app.use('/br', borrowReturnRoutes);
 const notificationRoutes = require('./src/routes/notificationRoutes');
 app.use('/notifications', notificationRoutes);
 
+const reportRoutes = require('./src/routes/reportRoutes');
+app.use('/reports', reportRoutes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
   })

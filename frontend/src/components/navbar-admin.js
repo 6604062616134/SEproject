@@ -6,23 +6,72 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
     const navigate = useNavigate();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [reports, setReports] = useState([]);
+    const [selectedReports, setSelectedReports] = useState([]);
 
     const handleLogout = async () => {
         try {
             await axios.post('http://localhost:8000/users/logout', {}, { withCredentials: true });
-            localStorage.removeItem('userId'); // ลบ userId ออกจาก localStorage
-            window.location.href = '/login'; // เปลี่ยนเส้นทางไปยังหน้า Login
+            localStorage.removeItem('userId');
+            window.location.href = '/';
         } catch (error) {
             console.error('Error logging out:', error);
             alert('Error logging out. Please try again.');
         }
     };
 
+    const toggleReportSelection = (reportId) => {
+        setSelectedReports((prevSelected) => {
+            if (prevSelected.includes(reportId)) {
+                return prevSelected.filter((id) => id !== reportId);
+            } else {
+                return [...prevSelected, reportId];
+            }
+        });
+    };
+
+    const handleDone = () => {
+        if (selectedReports.length === 0) {
+            alert('Please select at least one report before clicking Done.');
+            return;
+        }
+
+        // ลบรายงานที่เลือกออกจากรายการที่แสดง
+        setReports((prevReports) => prevReports.filter((report) => !selectedReports.includes(report.id)));
+        // ล้างรายการที่เลือก
+        setSelectedReports([]);
+        alert('Selected reports have been cleared from the list.');
+    };
+
     const openLogoutModal = () => setIsLogoutModalOpen(true);
     const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
-    const openReportModal = () => setIsReportModalOpen(true);
+    const openReportModal = () => {
+        fetchReports(); // เรียก fetchReports เพื่อดึงข้อมูลรีพอร์ต
+        setIsReportModalOpen(true); // เปิด Modal
+    };
     const closeReportModal = () => setIsReportModalOpen(false);
+
+    const fetchReports = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/reports/getReports', { withCredentials: true });
+            setReports(response.data.data);
+        } catch (error) {
+            console.error('Error fetching reports:', error);
+            alert('Failed to fetch reports. Please try again.');
+        }
+    };
+
+    const copyToClipboard = (email) => {
+        navigator.clipboard.writeText(email)
+            .then(() => {
+                alert(`Copied to clipboard: ${email}`);
+            })
+            .catch((error) => {
+                console.error('Failed to copy email:', error);
+                alert('Failed to copy email. Please try again.');
+            });
+    };
 
     return (
         <div className="font-sans">
@@ -69,18 +118,36 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
 
                 {isReportModalOpen && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                        <div className="bg-white p-6 rounded-lg w-[400px]" style={{ borderRadius: '20px' }}>
+                        <div className="bg-white p-6 rounded-lg w-[400px]" style={{ borderRadius: '25px', border: '1px solid black', zIndex: 50 }}>
                             <h3 className="font-bold text-xl text-black">User Reports</h3>
                             <ul className="mt-4">
-                                {/* ตัวอย่างข้อมูลรีพอร์ต */}
-                                <li className="border-b py-2">
-                                    <p className="font-semibold">Report 1</p>
-                                    <p className="text-sm text-gray-600">This is a sample report from a user.</p>
-                                </li>
-                                <li className="border-b py-2">
-                                    <p className="font-semibold">Report 2</p>
-                                    <p className="text-sm text-gray-600">Another sample report from a user.</p>
-                                </li>
+                                {reports.length > 0 ? (
+                                    reports.map((report, index) => (
+                                        <li key={index} className="border-b py-2 flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                className="mr-2"
+                                                checked={selectedReports.includes(report.id)}
+                                                onChange={() => toggleReportSelection(report.id)}
+                                            />
+                                            <div>
+                                                <p className="font-semibold text-black">
+                                                    Email : {report.email}
+                                                    <button
+                                                        className="ml-2 text-black underline text-sm"
+                                                        onClick={() => copyToClipboard(report.email)}
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                </p>
+                                                <p className="text-sm text-black">{report.message}</p>
+                                                <p className="text-xs text-gray-400">Date: {new Date(report.created).toLocaleString()}</p>
+                                            </div>
+                                        </li>
+                                    ))
+                                ) : (
+                                    <p className="text-center text-gray-500">No reports</p>
+                                )}
                             </ul>
                             <div className="flex justify-end gap-3 mt-6">
                                 <button
@@ -88,6 +155,12 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                                     onClick={closeReportModal}
                                 >
                                     Close
+                                </button>
+                                <button
+                                    className="btn-search"
+                                    onClick={handleDone}
+                                >
+                                    Done
                                 </button>
                             </div>
                         </div>
