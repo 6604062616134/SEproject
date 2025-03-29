@@ -150,7 +150,6 @@ const BorrowReturnController = {
                 LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
                 LEFT JOIN category ON boardgames.categoryID = category.id
                 WHERE borrowreturn.userID = ?
-                AND borrowreturn.status = 'borrowed'
                 ORDER BY borrowreturn.transactionID ASC
             `;
 
@@ -248,10 +247,6 @@ const BorrowReturnController = {
         try {
             const { game_id } = req.params; // ดึง game_id จาก URL
             const { user_id, status } = req.body; // ดึง user_id และ status จาก body
-
-            console.log("Received game_id:", game_id);
-            console.log("Received user_id:", user_id);
-            console.log("Received status:", status);
 
             if (!game_id || !user_id || !status) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });

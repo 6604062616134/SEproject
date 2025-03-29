@@ -8,19 +8,10 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 function Return() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [boardgameName, setBoardgameName] = useState('');
-    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('Select Category');
-    const [selectedDate, setSelectedDate] = useState('');
-    const [email, setEmail] = useState('');
-    const [name, setName] = useState('');
-    const [studentID, setStudentID] = useState('');
     const navigate = useNavigate();
     const formRef = useRef(null); // เพิ่ม useRef สำหรับฟอร์ม
     const [searchTerm, setSearchTerm] = useState('');
     const [borrowedGames, setBorrowedGames] = useState([]);
-    const [selectedGame, setSelectedGame] = useState(null); // เก็บข้อมูลบอร์ดเกมที่เลือก
-    const [isModalOpen, setIsModalOpen] = useState(false); // จัดการสถานะ modal
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // จัดการสถานะ modal
     const [gameToReturn, setGameToReturn] = useState(null);
 
@@ -32,11 +23,14 @@ function Return() {
         try {
             const userId = localStorage.getItem('userId'); // รับ userId จาก localStorage
             console.log("Fetching borrowed games for user ID:", userId);
-
+    
             const response = await axios.get(`http://localhost:8000/br/borrowed/${userId}`);
             console.log("Borrowed Games Response:", response.data);
-
-            setBorrowedGames(response.data.data); // ตั้งค่า borrowedGames ด้วยข้อมูลที่ได้จาก API
+    
+            // กรองข้อมูลที่สถานะไม่ใช่ 'returning'
+            const filteredGames = response.data.data.filter((game) => game.status !== 'returning');
+    
+            setBorrowedGames(filteredGames); // ตั้งค่า borrowedGames ด้วยข้อมูลที่กรองแล้ว
         } catch (error) {
             console.error("Error fetching borrowed games:", error);
         }
@@ -44,19 +38,6 @@ function Return() {
 
     const toggleMenu = (isCollapsed) => {
         setIsMenuOpen(isCollapsed);
-    };
-
-    const toggleCategoryDropdown = () => {
-        setIsCategoryOpen(!isCategoryOpen);
-    };
-
-    const handleCategorySelect = (category) => {
-        setSelectedCategory(category);
-        setIsCategoryOpen(false);
-    };
-
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
     };
 
     const handleSearchChange = (e) => {
@@ -79,15 +60,9 @@ function Return() {
 
     const handleReturn = async (game) => {
         try {
-            console.log("Game Data:", game);
-            console.log("Game ID:", game?.game_id);
             const userId = localStorage.getItem('userId');
-            console.log("Request Data:", {
-                user_id: userId,
-                status: 'returning',
-            });
 
-            const response = await axios.put(`http://localhost:8000/br/transactions/${game.game_id}/borrow`, {
+            const response = await axios.put(`http://localhost:8000/br/transactions/${game.game_id}/return`, {
                 user_id: userId,
                 status: 'returning',
             }, { withCredentials: true });
@@ -99,28 +74,6 @@ function Return() {
             console.error('Error returning boardgame:', error);
             alert('Error returning boardgame');
         }
-    };
-
-    const handleCancel = () => {
-        if (formRef.current) {
-            formRef.current.reset();
-        }
-        setBoardgameName('');
-        setSelectedCategory('Select Category');
-        setSelectedDate('');
-        setEmail('');
-        setName('');
-        setStudentID('');
-    };
-
-    const openModal = (game) => {
-        setSelectedGame(game); // เก็บข้อมูลบอร์ดเกมที่เลือก
-        setIsModalOpen(true); // เปิด modal
-    };
-
-    const closeModal = () => {
-        setSelectedGame(null); // ล้างข้อมูลบอร์ดเกมที่เลือก
-        setIsModalOpen(false); // ปิด modal
     };
 
     return (
@@ -151,7 +104,7 @@ function Return() {
                             <div className="flex flex-row flex-wrap gap-4 items-start">
                                 {borrowedGames.length === 0 ? (
                                     // หากไม่มีเกมที่ยืมมาเลย
-                                    <p className="text-xl font-semibold text-black opacity-50">No borrowed boardgames</p>
+                                    <p className="text-xl font-light text-black opacity-50">No borrowed boardgames</p>
                                 ) : filteredGames.length > 0 ? (
                                     // หากมีเกมที่ตรงกับคำค้นหา
                                     filteredGames.map((game) => (

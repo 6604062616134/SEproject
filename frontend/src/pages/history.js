@@ -86,7 +86,7 @@ function History() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="2" className="text-center pt-4 pb-4 text-black opacity-50">No results</td>
+                                        <td colSpan="2" className="text-center pt-4 pb-4 text-black opacity-50 font-light">No results</td>
                                     </tr>
                                 )}
                             </tbody>
