@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const borrowReturnController = require('../controllers/borrowReturnController');
-const { authenticateToken } = require('../middleware/authenticateToken');
+//const { authenticateToken } = require('../middleware/authenticateToken');
 
 router.get('/transactions', borrowReturnController.getTransactionsList);
 router.get('/getStatus/:gameId', borrowReturnController.getStatus);
@@ -11,6 +11,7 @@ router.get('/borrowed/:userId', borrowReturnController.getBorrowedGames);
 // router.put('/transactions/:boardgame_id/borrow', borrowReturnController.updateTransactionStatus);
 router.put('/transactions/update', borrowReturnController.updateTransactionStatus);
 router.put('/transactions/:game_id/return', borrowReturnController.returnGame);
+router.put('/admin/accept', borrowReturnController.adminAcceptRequest);
 
 // router.post('/create',authenticateToken, borrowReturnController.createTransaction);
 router.post('/create', borrowReturnController.createTransaction);

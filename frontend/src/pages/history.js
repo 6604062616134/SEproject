@@ -71,7 +71,7 @@ function History() {
                             </div>
                             {/* <button className='btn-search'>Search</button> */}
                         </div>
-                        {/* ตารางแสดงข้อมูล */}
+                        {/* modal */}
                         <div className="flex flex-row flex-wrap gap-4 justify-center mt-10">
                             {filteredTransactions.length > 0 ? (
                                 filteredTransactions.map((transaction, index) => (
