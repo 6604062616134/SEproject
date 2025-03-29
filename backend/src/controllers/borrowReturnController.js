@@ -149,7 +149,7 @@ const BorrowReturnController = {
                 FROM borrowreturn
                 LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
                 LEFT JOIN category ON boardgames.categoryID = category.id
-                WHERE borrowreturn.userID = ?
+                WHERE borrowreturn.userID = ? AND borrowreturn.status = 'borrowed'
                 ORDER BY borrowreturn.transactionID ASC
             `;
 
@@ -174,7 +174,7 @@ const BorrowReturnController = {
 
     async updateTransactionStatus(req, res) {
         try {
-            const { gameID, userID, status } = req.body;
+            const { gameID, userID, accept, status } = req.body;
 
             console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
 
@@ -247,22 +247,22 @@ const BorrowReturnController = {
     async adminAcceptRequest(req, res) {
         try {
             const { gameID, name, status } = req.body;
-    
+
             console.log("Admin Accept Request - Received gameID:", gameID, "name:", name, "status:", status);
-    
+
             if (!gameID || !name || !status) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-    
+
             // ค้นหา userID จาก name
             const [userResult] = await db.query(`SELECT id FROM users WHERE name = ?`, [name]);
-    
+
             if (userResult.length === 0) {
                 return res.status(404).json({ status: 'error', message: 'User not found' });
             }
-    
+
             const userID = userResult[0].id;
-    
+
             // อัปเดต userID และสถานะในตาราง borrowreturn
             const updateBorrowReturnSql = `
                 UPDATE borrowreturn
@@ -270,38 +270,45 @@ const BorrowReturnController = {
                 WHERE gameID = ?
             `;
             const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, status, gameID]);
-    
+
             if (borrowReturnResult.affectedRows === 0) {
                 return res.status(400).json({ status: 'error', message: 'Failed to update borrowreturn' });
             }
-    
+
             // เพิ่ม stock ในกรณีที่สถานะเป็น returning
             if (status === 'returning') {
+                // ตรวจสอบ stock ก่อนเพิ่ม
+                const [stockCheckResult] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
+
+                const { stock } = stockCheckResult[0]; // ตรวจสอบ stock ก่อนเพิ่ม
+
+                // เพิ่ม stock
                 const updateStockSql = `
-                    UPDATE boardgames
-                    SET stock = stock + 1
-                    WHERE id = ?
-                `;
+                        UPDATE boardgames
+                        SET stock = stock + 1
+                        WHERE id = ?
+                    `;
                 const [stockResult] = await db.query(updateStockSql, [gameID]);
-    
+
                 if (stockResult.affectedRows === 0) {
                     return res.status(400).json({ status: 'error', message: 'Failed to update stock' });
                 }
-    
+
                 // ตรวจสอบ stock หลังจากอัปเดต
-                const [stockCheckResult] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
-    
-                if (stockCheckResult.length > 0 && stockCheckResult[0].stock > 0) {
+                const [updatedStockResult] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
+
+                if (updatedStockResult.length > 0 && updatedStockResult[0].stock > 0) {
                     // อัปเดตสถานะใน borrowreturn เป็น available หาก stock > 0
                     const updateStatusSql = `
-                        UPDATE borrowreturn
-                        SET status = 'available', modified = NOW()
-                        WHERE gameID = ?
-                    `;
+                            UPDATE borrowreturn
+                            SET status = 'available', modified = NOW()
+                            WHERE gameID = ?
+                        `;
                     await db.query(updateStatusSql, [gameID]);
                 }
+
             }
-    
+
             // เพิ่ม borrowedTimes ในตาราง boardgames ในกรณีที่สถานะเป็น borrowed
             if (status === 'borrowed') {
                 const updateBorrowedTimesSql = `
@@ -311,7 +318,14 @@ const BorrowReturnController = {
                 `;
                 await db.query(updateBorrowedTimesSql, [gameID]);
             }
-    
+
+            // เพิ่มประวัติการยืมในตาราง history
+            const insertHistorySql = `
+                INSERT INTO history (gameID, userID, modified)
+                VALUES (?, ?, NOW())
+            `;
+            await db.query(insertHistorySql, [gameID, userID]);
+
             res.status(200).json({ status: 'success', message: 'Request accepted successfully' });
         } catch (error) {
             console.error('Error in adminAcceptRequest:', error);
