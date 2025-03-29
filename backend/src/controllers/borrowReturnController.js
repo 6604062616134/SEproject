@@ -1,4 +1,3 @@
-const { mode } = require('mathjs');
 const db = require('../db');
 
 const BorrowReturnController = {
@@ -222,6 +221,13 @@ const BorrowReturnController = {
             if (result.affectedRows === 0) {
                 return res.status(404).json({ status: 'error', message: 'Transaction not found or already updated' });
             }
+
+            // เพิ่มข้อมูลลงในตาราง history
+            const insertHistorySql = `
+                INSERT INTO history (userID, gameID, modified)
+                VALUES (?, ?, NOW())
+            `;
+            await db.query(insertHistorySql, [userID, gameID]);
 
             // เพิ่มค่า borrowedTimes ในตาราง boardgames
             const updateBorrowedTimesSql = `
