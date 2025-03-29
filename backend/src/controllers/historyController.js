@@ -27,11 +27,9 @@ const HistoryController = {
                 ...row,
                 imagePath: `/images/${row.name.replace(/\s+/g, '_').toLowerCase()}.jpg`
             }));
-            //console.log("Borrowed Games with Image Paths:", historyWithImagePaths);
 
             res.status(200).json({ status: 'success', data: historyWithImagePaths });
 
-            // res.json({ data: rows, status: 'success' });
         } catch (error) {
             console.error('Error fetching history:', error);
             res.status(500).json({ error: 'Internal server error', status: 'error' });

@@ -174,68 +174,59 @@ const BorrowReturnController = {
 
     async updateTransactionStatus(req, res) {
         try {
-            const { gameID, userID, status } = req.body;
-
+            const { gameID, userID, status, accept } = req.body;
+    
             console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
-
+    
             if (!gameID || !userID || !status) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-
+    
             // ตรวจสอบว่ามีข้อมูลเกมนี้อยู่ในฐานข้อมูลหรือไม่
             const [existingTransaction] = await db.query(`SELECT * FROM borrowreturn WHERE gameID = ?`, [gameID]);
-
+    
             if (existingTransaction.length === 0) {
                 return res.status(404).json({ status: 'error', message: 'Game not found' });
             }
-
-            const updateStockSql = `
-            UPDATE boardgames
-            SET stock = stock - 1
-            WHERE id = ? AND stock > 0
-            `;
+    
+            let updateStockSql = '';
+    
+            if (status === 'borrowed') {
+                // ลด stock เมื่อสถานะเป็น borrowed
+                updateStockSql = `UPDATE boardgames SET stock = stock - 1 WHERE id = ? AND stock > 0`;
+            } else if (accept === true && existingTransaction[0].status === 'returning') {
+                // เพิ่ม stock เมื่อสถานะเป็น returning และ accept เป็น true
+                updateStockSql = `UPDATE boardgames SET stock = stock + 1 WHERE id = ?`;
+            } else if (existingTransaction[0].status === 'available') {
+                // กรณีสถานะเป็น available ไม่ต้องอัปเดต stock
+                return res.status(200).json({ status: 'success', message: 'No stock update needed for available status' });
+            } else {
+                return res.status(400).json({ status: 'error', message: 'Invalid stock update operation: No valid condition met' });
+            }
+    
+            if (!updateStockSql) {
+                return res.status(400).json({ status: 'error', message: 'Invalid stock update operation' });
+            }
+    
+            // อัปเดต stock ในตาราง boardgames
             const [stockResult] = await db.query(updateStockSql, [gameID]);
-
+    
             if (stockResult.affectedRows === 0) {
-                return res.status(400).json({ status: 'error', message: 'Not available now' });
+                return res.status(400).json({ status: 'error', message: 'Stock update failed' });
             }
-
-            // ตรวจสอบค่า stock หลังจากลดจำนวน
-            const [updatedGame] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
-
-            if (updatedGame.length === 0) {
-                return res.status(404).json({ status: 'error', message: 'Game not found after stock update' });
-            }
-
-            const currentStock = updatedGame[0].stock;
-            const newStatus = currentStock === 0 ? 'borrowed' : 'available';
-
-            const sql = `
+    
+            // อัปเดต userID และสถานะในตาราง borrowreturn
+            const updateBorrowReturnSql = `
                 UPDATE borrowreturn
-                SET status = ?, userID = ?, modified = NOW()
+                SET userID = ?, status = ?, modified = NOW()
                 WHERE gameID = ?
             `;
-            const [result] = await db.query(sql, [newStatus, userID, gameID]);
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ status: 'error', message: 'Transaction not found or already updated' });
+            const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, status, gameID]);
+    
+            if (borrowReturnResult.affectedRows === 0) {
+                return res.status(400).json({ status: 'error', message: 'Failed to update borrowreturn' });
             }
-
-            // เพิ่มข้อมูลลงในตาราง history
-            const insertHistorySql = `
-                INSERT INTO history (userID, gameID, modified)
-                VALUES (?, ?, NOW())
-            `;
-            await db.query(insertHistorySql, [userID, gameID]);
-
-            // เพิ่มค่า borrowedTimes ในตาราง boardgames
-            const updateBorrowedTimesSql = `
-                UPDATE boardgames
-                SET borrowedTimes = borrowedTimes + 1
-                WHERE id = ?
-            `;
-            await db.query(updateBorrowedTimesSql, [gameID]);
-
+    
             res.status(200).json({ status: 'success', message: 'Transaction updated successfully' });
         } catch (error) {
             console.error('Error updating transaction status:', error);

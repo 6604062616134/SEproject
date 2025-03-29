@@ -52,9 +52,6 @@ function Dashboard() {
 
         const transaction = transactions.find(t => t.transactionID === transactionId);
 
-        // console.log("Transactions:", transactions);
-        // console.log("Selected Transaction:", transaction);
-
         if (!transaction || !transaction.game_id) {
             console.error("Transaction is missing game_id:", transaction);
             alert("Game ID is missing. Please check the data.");
@@ -66,9 +63,8 @@ function Dashboard() {
                 gameID: transaction.game_id,
                 userID: userId,
                 status: 'available',
+                accept : true,
             }, { withCredentials: true });
-
-            // console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));

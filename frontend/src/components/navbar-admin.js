@@ -97,7 +97,7 @@ function NavbarAdmin({ isMenuOpen, toggleMenu }) {
                 </div>
                 {isLogoutModalOpen && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                        <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '20px', zIndex: 50 }}>
+                        <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '20px', zIndex: 50, border: '1px solid black' }}>
                             <h3 className="font-bold text-xl text-black">Confirm Logout</h3>
                             <p className="mt-4 text-black">Are you sure you want to log out?</p>
                             <div className="flex justify-end gap-3 mt-6">
