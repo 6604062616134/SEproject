@@ -4,7 +4,7 @@ const ReserveController = require('../controllers/reserveController');
 
 router.get('getReservation/:id', ReserveController.getReservationById);
 
-router.put('/updateReservation/:id', ReserveController.updateReservationById);
+//router.put('/updateReservation/:id', ReserveController.updateReservationById);
 
 router.post('/createReservation', ReserveController.createReservation);
 

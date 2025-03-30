@@ -158,7 +158,6 @@ const BoardgamesController = {
             }));
 
             res.json({ data: boardgamesWithImagePaths, status: "success" });
-            console.log("Recommended boardgames:", rows);
 
         } catch (error) {
             console.error('Error fetching recommended boardgames:', error);

@@ -174,9 +174,7 @@ const BorrowReturnController = {
 
     async updateTransactionStatus(req, res) {
         try {
-            const { gameID, userID, status, hour } = req.body;
-
-            console.log("hour:", hour); // log the hour value
+            const { gameID, userID, status } = req.body;
 
             console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
 
@@ -200,14 +198,13 @@ const BorrowReturnController = {
 
             const { stock } = stockCheckResult[0];
 
-            // อัปเดต userID, status ในตาราง borrowreturn
             const updateBorrowReturnSql = `
                 UPDATE borrowreturn
-                SET isBorrow = 1, userID = ?, status = ?, modified = NOW()
+                SET isBorrow = 1, userID = ?, modified = NOW()
                 WHERE gameID = ?
             `;
 
-            const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, status, gameID]);
+            const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, gameID]);
 
             if (borrowReturnResult.affectedRows === 0) {
                 return res.status(400).json({ status: 'error', message: 'Failed to update borrowreturn' });
@@ -462,6 +459,27 @@ const BorrowReturnController = {
         }
     },
 
+    async adminRejectRequest(req, res) {
+        try {
+            const { gameID, userID, reason } = req.body;
+    
+            if (!gameID || !userID || !reason) {
+                return res.status(400).json({ status: 'error', message: 'Missing required fields' });
+            }
+    
+            // บันทึกเหตุผลการปฏิเสธในฐานข้อมูล (ตัวอย่าง)
+            const sql = `
+                INSERT INTO notifications (userID, gameID, message, created)
+                VALUES (?, ?, ?, NOW())
+            `;
+            await db.query(sql, [userID, gameID, reason]);
+    
+            res.status(200).json({ status: 'success', message: 'Rejection notification sent successfully' });
+        } catch (error) {
+            console.error('Error in adminRejectRequest:', error);
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
+        }
+    }
 }
 
 module.exports = BorrowReturnController;

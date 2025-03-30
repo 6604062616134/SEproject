@@ -36,13 +36,6 @@ function Homelogin() {
 
     const fetchBoardgames = async () => {
         try {
-            // console.log("Fetching boardgames with params:", {
-            //     name: searchTerm,
-            //     level: level !== 'Level' ? level : '',
-            //     playerCounts: players !== '2 Players' ? players : '',
-            //     categoryID: categoryId !== '' ? categoryId : ''
-            // });
-
             const response = await axios.get('http://localhost:8000/boardgames', {
                 params: {
                     name: searchTerm,
@@ -51,8 +44,6 @@ function Homelogin() {
                     categoryID: categoryId !== '' ? categoryId : ''
                 }
             });
-
-            console.log("API Response:", response.data);
 
             if (response.data.data && response.data.data.length > 0) {
                 setBoardgames(response.data.data); // ตั้งค่า boardgames หากมีข้อมูล
@@ -70,7 +61,6 @@ function Homelogin() {
     const fetchBoardgamesRecommended = async () => {
         try {
             const response = await axios.get('http://localhost:8000/boardgames/recommended');
-            console.log("Recommended Games:", response.data.data);
             setRecommended(response.data.data);
         } catch (error) {
             console.error("Error fetching recommended boardgames:", error);
@@ -268,46 +258,52 @@ function Homelogin() {
             alert("Please log in to borrow a board game.");
             return;
         }
-    
+
         // ตรวจสอบสถานะล่าสุดจากฐานข้อมูล
         try {
             const response = await axios.get(`http://localhost:8000/br/getStatus/${selectedGame.boardgame_id}`);
             const latestStatus = response.data.data[0]?.status;
     
-            if (latestStatus === 'borrowed' || latestStatus === 'reserved' || latestStatus === 'returning') {
-                alert("This game is already borrowed and cannot be borrowed again.");
-                return;
+            // if (latestStatus === 'reserved' || latestStatus === 'returning') {
+            //     alert("This game is already borrowed, please reserve it instead.");
+            //     return;
+            // }
+    
+            const day = document.querySelector('input[placeholder="DD"]').value;
+            const month = document.querySelector('input[placeholder="MM"]').value;
+            const year = document.querySelector('input[placeholder="YY"]').value;
+    
+            // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
+            if (day && month && year) {
+                // เรียก API createReservation
+                try {
+                    const reservationResponse = await axios.post(`http://localhost:8000/reserve/createReservation`, {
+                        gameID: selectedGame.boardgame_id,
+                        userID: userId,
+                        reservationDate: `${year}-${month}-${day}` // ส่งวันที่ในรูปแบบ YYYY-MM-DD
+                    }, { withCredentials: true });
+    
+                    if (reservationResponse.data.status === 'success') {
+                        alert('Reservation created successfully');
+                        setSelectedGame(null); // ปิด modal
+                    } else {
+                        alert(`Reservation failed: ${reservationResponse.data.message || "Unknown error"}`);
+                    }
+                } catch (error) {
+                    console.error('Error creating reservation:', error.response?.data || error.message);
+                    alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
+                }
+            } else if (selectedHour && selectedHour !== 'Select Hour') {
+                // เรียกฟังก์ชัน borrowSubmit
+                await borrowSubmit(selectedGame);
+                setSelectedGame(null); // ปิด modal หลังจาก borrowSubmit สำเร็จ
+            } else {
+                // แจ้งเตือนหากไม่มีการกรอกข้อมูลที่จำเป็น
+                alert("Please select an hour or fill in the booking date (DD/MM/YY).");
             }
         } catch (error) {
             console.error("Error fetching latest status:", error);
             alert("Unable to verify the game status. Please try again later.");
-            return;
-        }
-    
-        const day = document.querySelector('input[placeholder="DD"]').value;
-        const month = document.querySelector('input[placeholder="MM"]').value;
-        const year = document.querySelector('input[placeholder="YY"]').value;
-    
-        // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
-        if (day && month && year) {
-            // เรียกฟังก์ชัน reservedSubmit หากมีการกรอกวันที่
-            if (selectedGame && selectedGame.boardgame_id) {
-                await reservedSubmit(selectedGame);
-                setSelectedGame(null);
-            } else {
-                alert("Error: Board game ID is missing.");
-            }
-        } else if (selectedHour && selectedHour !== 'Select Hour') {
-            // เรียกฟังก์ชัน borrowSubmit หากเลือกจำนวนชั่วโมง
-            if (selectedGame && selectedGame.boardgame_id) {
-                await borrowSubmit(selectedGame);
-                setSelectedGame(null);
-            } else {
-                alert("Error: Board game ID is missing.");
-            }
-        } else {
-            // แจ้งเตือนหากไม่มีการกรอกข้อมูลที่จำเป็น
-            alert("Please select an hour or fill in the booking date (DD/MM/YY).");
         }
     };
 

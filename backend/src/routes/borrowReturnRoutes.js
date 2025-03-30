@@ -16,5 +16,6 @@ router.put('/createReturnDate', borrowReturnController.createReturningDate);
 
 // router.post('/create',authenticateToken, borrowReturnController.createTransaction);
 router.post('/create', borrowReturnController.createTransaction);
+router.post('/admin/reject', borrowReturnController.adminRejectRequest);
 
 module.exports = router;

@@ -69,34 +69,30 @@ function Dashboard() {
     };
 
     const handleReject = async (transactionId) => {
-        if (!userId) {
-            alert("User ID not found. Please log in.");
-            return;
-        }
-
         const transaction = transactions.find(t => t.transactionID === transactionId);
-
-        if (!transaction || !transaction.game_id) {
-            console.error("Transaction is missing game_id:", transaction);
-            alert("Game ID is missing. Please check the data.");
+    
+        if (!transaction || !transaction.game_id || !transaction.user_id) {
+            console.error("Transaction is missing required fields:", transaction);
+            alert("Required data is missing. Please check the transaction.");
             return;
         }
-
+    
         try {
-            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+            const response = await axios.post(`http://localhost:8000/br/admin/reject`, {
                 gameID: transaction.game_id,
-                userID: userId, // ใช้ userId จาก Local Storage
-                status: 'available',
-            }, { withCredentials: true });
-
+                userID: transaction.user_id, // ส่ง userID ของผู้ใช้
+                reason: "Your request has been rejected by the admin." // เหตุผลในการปฏิเสธ
+            });
+    
             if (response.data.status === 'success') {
+                alert("The user has been notified about the rejection.");
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
-                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
+                alert(`Reject request failed: ${response.data.message || "Unknown error"}`);
             }
         } catch (error) {
-            console.error('Error submitting borrow request:', error.response?.data || error.message);
-            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
+            console.error('Error submitting reject request:', error.response?.data || error.message);
+            alert(`Error submitting reject request: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -154,7 +150,7 @@ function Dashboard() {
                                             <td className='pt-4 pb-4'>{formatDate(transaction.borrowingDate)}</td>
                                             <td className='pt-4 pb-4 gap-4'>
                                                 <button className='btn-accept' onClick={() => handleAccept(transaction.transactionID)}>Accept</button>
-                                                <button className='btn-reject' onClick={() => openRejectModal(transaction.transactionID)}>Reject</button>
+                                                <button className='btn-reject' onClick={() => handleReject(transaction.transactionID)}>Reject</button>
                                             </td>
                                         </tr>
                                     ))

@@ -37,14 +37,24 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
             }
         };
         fetchUser();
+        fetchNotification();
     }, [navigate]);
 
     const fetchNotification = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/notifications', { withCredentials: true });
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                alert('User ID not found. Please log in again.');
+                navigate('/login');
+                return;
+            }
+    
+            const response = await axios.get(`http://localhost:8000/notifications/getnoti?userId=${userId}`, { withCredentials: true });
             setNotifications(response.data.data);
         } catch (error) {
-            if (error.response && error.response.status === 401) {
+            if (error.response && error.response.status === 404) {
+                alert('No notifications found.');
+            } else if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
                 navigate('/login');
             } else {
