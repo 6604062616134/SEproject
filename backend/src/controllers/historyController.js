@@ -10,7 +10,12 @@ const HistoryController = {
             }
 
             const sql = `
-                SELECT h.*, b.* ,c.*
+                SELECT 
+                h.*, 
+                b.name AS game_name, -- ใช้ alias เพื่อแยกชื่อเกม
+                c.name AS category_name, -- ใช้ alias เพื่อแยกชื่อหมวดหมู่
+                b.*, 
+                c.*
                 FROM history h
                 LEFT JOIN boardgames b ON h.gameID = b.id
                 LEFT JOIN category c ON b.categoryID = c.id
@@ -20,14 +25,18 @@ const HistoryController = {
 
             const [rows] = await db.query(sql, [userID]);
 
+            console.log('Fetched history:', rows); // Log the fetched history for debugging
+
             if (rows.length === 0) {
                 return res.status(404).json({ error: 'History not found', status: 'error' });
             }
 
             const historyWithImagePaths = rows.map(row => ({
                 ...row,
-                imagePath: `/images/${row.name.replace(/\s+/g, '_').toLowerCase()}.jpg`
+                imagePath: `/images/${row.game_name.replace(/\s+/g, '_').toLowerCase()}.jpg`
             }));
+
+            console.log('History with image paths:', historyWithImagePaths); // Log the history with image paths for debugging
 
             res.status(200).json({ status: 'success', data: historyWithImagePaths });
 

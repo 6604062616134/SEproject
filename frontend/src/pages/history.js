@@ -54,7 +54,7 @@ function History() {
             <NavbarLogin isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             <div className='flex justify-center min-h-screen'>
                 <div className='container mx-auto'>
-                    <div className='flex flex-col justify-center items-center mt-32 w-full'>
+                    <div className='flex flex-col justify-center items-center mt-32 w-full mb-12 p-4'>
                         <div className='flex flex-row gap-4'>
                             <h2 className='text-left text-black font-bold text-3xl'>History</h2>
                             <div className="border border-black rounded-3xl pl-6 ml-12 mt-1 bg-transparent w-[450px] flex items-center justify-between gap-2" style={{ height: '40px' }}>
@@ -90,7 +90,7 @@ function History() {
                                             }}
                                         />
                                         <div className="mt-3">
-                                            <p className="text-xl font-semibold ml-5">{transaction.name}</p>
+                                            <p className="text-xl font-semibold ml-5">{transaction.game_name}</p>
                                             <p className="text-black ml-5">{transaction.category_name}</p>
                                             <p className="text-black ml-5">Level: {transaction.level}</p>
                                             <p className="text-black ml-5">Players: {transaction.playerCounts} persons</p>
