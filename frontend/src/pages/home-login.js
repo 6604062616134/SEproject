@@ -262,7 +262,8 @@ function Homelogin() {
         // ตรวจสอบสถานะล่าสุดจากฐานข้อมูล
         try {
             const response = await axios.get(`http://localhost:8000/br/getStatus/${selectedGame.boardgame_id}`);
-            const latestStatus = response.data.data[0]?.status;
+            
+            //const latestStatus = response.data.data[0]?.status;
     
             // if (latestStatus === 'reserved' || latestStatus === 'returning') {
             //     alert("This game is already borrowed, please reserve it instead.");
@@ -272,10 +273,8 @@ function Homelogin() {
             const day = document.querySelector('input[placeholder="DD"]').value;
             const month = document.querySelector('input[placeholder="MM"]').value;
             const year = document.querySelector('input[placeholder="YY"]').value;
-    
-            // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
+
             if (day && month && year) {
-                // เรียก API createReservation
                 try {
                     const reservationResponse = await axios.post(`http://localhost:8000/reserve/createReservation`, {
                         gameID: selectedGame.boardgame_id,
@@ -285,7 +284,7 @@ function Homelogin() {
     
                     if (reservationResponse.data.status === 'success') {
                         alert('Reservation created successfully');
-                        setSelectedGame(null); // ปิด modal
+                        setSelectedGame(null);
                     } else {
                         alert(`Reservation failed: ${reservationResponse.data.message || "Unknown error"}`);
                     }
@@ -296,9 +295,8 @@ function Homelogin() {
             } else if (selectedHour && selectedHour !== 'Select Hour') {
                 // เรียกฟังก์ชัน borrowSubmit
                 await borrowSubmit(selectedGame);
-                setSelectedGame(null); // ปิด modal หลังจาก borrowSubmit สำเร็จ
+                setSelectedGame(null);
             } else {
-                // แจ้งเตือนหากไม่มีการกรอกข้อมูลที่จำเป็น
                 alert("Please select an hour or fill in the booking date (DD/MM/YY).");
             }
         } catch (error) {
