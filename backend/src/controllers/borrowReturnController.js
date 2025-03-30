@@ -377,16 +377,6 @@ const BorrowReturnController = {
 
             }
 
-            // เพิ่ม borrowedTimes ในตาราง boardgames ในกรณีที่สถานะเป็น borrowed
-            if (status === 'borrowed') {
-                const updateBorrowedTimesSql = `
-                    UPDATE boardgames
-                    SET borrowedTimes = borrowedTimes + 1
-                    WHERE id = ?
-                `;
-                await db.query(updateBorrowedTimesSql, [gameID]);
-            }
-
             // เพิ่มประวัติการยืมในตาราง history
             const insertHistorySql = `
                 INSERT INTO history (gameID, userID, modified)
