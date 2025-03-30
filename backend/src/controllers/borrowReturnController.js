@@ -256,44 +256,59 @@ const BorrowReturnController = {
     async createReturningDate(req, res) {
         try {
             const { gameID, userID, hour } = req.body;
-
+    
             if (!gameID || !userID) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-
+    
             if (!hour) {
                 return res.status(400).json({ status: 'error', message: 'Missing hour' });
             }
-
+    
             // ดึง borrowingDate จากฐานข้อมูล
             const [borrowRecord] = await db.query(
                 `SELECT borrowingDate FROM borrowreturn WHERE gameID = ? AND userID = ?`,
                 [gameID, userID]
             );
-
+    
             if (borrowRecord.length === 0 || !borrowRecord[0].borrowingDate) {
                 return res.status(404).json({ status: 'error', message: 'Borrowing date not found' });
             }
-
+    
             const borrowingDate = new Date(borrowRecord[0].borrowingDate);
             console.log("Borrowing Date:", borrowingDate);
-
+    
             // คำนวณวันที่คืนโดยการบวกชั่วโมงที่เลือก
             const returnDate = new Date(borrowingDate);
             returnDate.setHours(returnDate.getHours() + parseInt(hour));
-
+    
             const formattedReturnDate = returnDate.toISOString().slice(0, 19).replace('T', ' ');
             console.log("Calculated Return Date:", formattedReturnDate);
-
+    
+            // ดึง categoryID จาก gameID
+            const [categoryResult] = await db.query(
+                `SELECT categoryID FROM boardgames WHERE id = ?`,
+                [gameID]
+            );
+    
+            if (categoryResult.length === 0 || !categoryResult[0].categoryID) {
+                return res.status(404).json({ status: 'error', message: 'Category not found for the given gameID' });
+            }
+    
+            // กำหนดค่า categoryID
+            const categoryID = categoryResult[0].categoryID;
+            console.log("Category ID:", categoryID);
+    
+            // เพิ่มข้อมูลลงในตาราง returning
             const insertReturnSql = `
-                INSERT INTO \`returning\` (gameID, userID, returnDate)
-                VALUES (?, ?, ?)
+                INSERT INTO \`returning\` (gameID, userID, categoryID, returnDate)
+                VALUES (?, ?, ?, ?)
             `;
-
-            await db.query(insertReturnSql, [gameID, userID, formattedReturnDate]);
-
+    
+            await db.query(insertReturnSql, [gameID, userID, categoryID, formattedReturnDate]);
+    
             res.status(200).json({ status: 'success', message: 'Return date created successfully' });
-
+    
         } catch (error) {
             console.error('Error updating returning date:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });

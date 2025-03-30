@@ -4,7 +4,6 @@ import Navbar from '../components/navbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import '../index.css';
-import { NavLink } from 'react-router-dom';
 
 function Home() {
     const [boardgames, setBoardgames] = useState([]);
@@ -19,11 +18,9 @@ function Home() {
     const [level, setLevel] = useState('');
     const [players, setPlayers] = useState('');
     const [showRecommended, setShowRecommended] = useState(true);
-    const [showPopular, setShowPopular] = useState(true);
     const [recommended, setRecommended] = useState([]);
-    const [popular, setPopular] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
-    //const [searched, setSearched] = useState(false);
+    const [searched, setSearched] = useState(false);
     const [isHourOpen, setIsHourOpen] = useState(false);
     const [selectedHour, setSelectedHour] = useState('1 Hour');
     const [hour, setHour] = useState('1');
@@ -31,7 +28,6 @@ function Home() {
 
     useEffect(() => {
         fetchBoardgamesRecommended();
-        fetchBoardgamesPopular();
         // fetchBoardgames(searchTerm);
         // console.log("AAA --> ", showRecommended);
     }, []);
@@ -74,18 +70,6 @@ function Home() {
         }
     };
 
-    const fetchBoardgamesPopular = async () => {
-        try {
-            const response = await axios.get('http://localhost:8000/boardgames/popular');
-            console.log("API Response:", response.data.data);
-            setShowPopular(true);
-            setPopular(response.data.data);
-        } catch (error) {
-            console.error("Error fetching popular boardgames:", error);
-            setPopular([]);
-        }
-    };
-
     const fetchGameStatus = async (gameId) => {
         try {
             const response = await axios.get(`http://localhost:8000/br/getStatus/${gameId}`);
@@ -109,7 +93,7 @@ function Home() {
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
         setShowRecommended(false);
-        setShowPopular(false);
+        setSearched(true); // อัปเดตสถานะว่าได้ทำการค้นหาแล้ว
         try {
             const response = await axios.get('http://localhost:8000/boardgames', {
                 params: {
@@ -122,6 +106,7 @@ function Home() {
             setBoardgames(response.data.data);
         } catch (error) {
             console.error('Error fetching boardgames:', error);
+            setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างในกรณีที่เกิดข้อผิดพลาด
         }
     };
 
@@ -238,9 +223,6 @@ function Home() {
     const handleCategoryClick = (category) => {
         handleCategorySelect(category);
         setShowRecommended(false);
-
-        //console.log("CCCC --> ", showRecommended);
-        setShowPopular(false);
         fetchBoardgames();
     };
 
@@ -409,33 +391,6 @@ function Home() {
                         </div>
                     )}
 
-                    {showPopular && (
-                        <div className='flex flex-col mt-10 mb-12 gap-4'>
-                            <p className="text-2xl font-semibold ml-48">Popular</p>
-                            <div className="flex flex-row flex-wrap gap-4 justify-center">
-                                {popular.map((boardgame) => (
-                                    <div key={boardgame.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
-                                        <img src={boardgame.imagePath} alt={boardgame.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
-                                        <div className="mt-3">
-                                            <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
-                                            <p className="text-black ml-5">{boardgame.category_name}</p>
-                                            <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
-                                                <button
-                                                    className="btn-search"
-                                                    onClick={() => handleBorrowClick(boardgame)}
-                                                >
-                                                    Borrow
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     {/* modalยืมบอร์ดเกม */}
                     {selectedGame && (
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -536,7 +491,7 @@ function Home() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-2xl font-semibold text-black opacity-50">No results</p> // ข้อความแจ้งเตือนเมื่อไม่มีข้อมูล
+                            searched && <p className="text-2xl font-semibold text-black opacity-50">No results</p>
                         )}
                     </div>
                 </div>

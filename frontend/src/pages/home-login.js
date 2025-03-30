@@ -62,7 +62,7 @@ function Homelogin() {
             console.error("Error fetching boardgames:", error);
             setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างในกรณีที่เกิดข้อผิดพลาด
         } finally {
-            
+
         }
     };
 
@@ -334,20 +334,20 @@ function Homelogin() {
                 userID: userID,
                 hour: hour,
             }, { withCredentials: true });
-    
+
             console.log("Create return date Response:", response.data);
-    
+
             if (response.data.status === 'success') {
                 // alert('Return date created successfully');
                 console.log('Return date created successfully');
             } else {
                 alert(`Return date creation failed: ${response.data.message || "Unknown error"}`);
             }
-    
+
         } catch (error) {
             console.error("Error creating return date:", error);
         }
-    };    
+    };
 
     const reservedSubmit = async (game) => {
         // เมื่อมีการอินพุทข้อมูลจองบอร์ดเกมให้เรียกใช้ฟังก์ชันนี้
@@ -601,8 +601,11 @@ function Homelogin() {
                                         <p className="text-xl font-semibold ml-5">{game.boardgame_name}</p>
                                         <p className="text-black ml-5">{game.category_name}</p>
                                         <p className="text-black ml-5">level : {game.level}</p>
+                                        <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                            <p className="text-black" style={{ marginTop: -14 }}>players : {game.playerCounts} persons</p>
+                                            <div>
+                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
+                                            </div>
                                             <button
                                                 className="btn-search"
                                                 onClick={() => setSelectedGame(game)}
@@ -614,9 +617,7 @@ function Homelogin() {
                                 </div>
                             ))
                         ) : (
-                            isSearching && (
-                                <p className="text-2xl font-semibold text-black opacity-50">No results</p>
-                            )
+                            isSearching && <p className="text-2xl font-semibold text-black opacity-50">No results</p>
                         )}
                     </div>
                 </div>
