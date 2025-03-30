@@ -42,19 +42,20 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
 
     const fetchNotification = async () => {
         try {
+            //เรียกเอพีไอเส้น getnotires เพื่อดึงข้อมูลการจอง
             const userId = localStorage.getItem('userId');
             if (!userId) {
-                alert('User ID not found. Please log in again.');
-                navigate('/login');
+                console.error('User ID not found in localStorage');
                 return;
             }
-    
-            const response = await axios.get(`http://localhost:8000/notifications/getnoti?userId=${userId}`, { withCredentials: true });
-            setNotifications(response.data.data);
+
+            const response = await axios.get(`http://localhost:8000/notifications/getnotires/${userId}`, { withCredentials: true });
+            const notificationsData = response.data.data;
+            setNotifications(notificationsData);
+            setHasNewNotification(notificationsData.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
+
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                alert('No notifications found.');
-            } else if (error.response && error.response.status === 401) {
+            if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
                 navigate('/login');
             } else {

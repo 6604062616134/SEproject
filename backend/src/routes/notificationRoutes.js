@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
 
-router.get('/getnoti', notificationController.getNotifications);
+router.get('/getnotires/:id', notificationController.getReserveNotificationsById);
+router.get('/getnotireturn/:id', notificationController.getReturnNotificationsById);
 
 router.put('/create', notificationController.createNotification);
 
