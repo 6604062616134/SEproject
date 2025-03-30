@@ -12,7 +12,7 @@ function Return() {
     const formRef = useRef(null); // เพิ่ม useRef สำหรับฟอร์ม
     const [searchTerm, setSearchTerm] = useState('');
     const [borrowedGames, setBorrowedGames] = useState([]);
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // จัดการสถานะ modal
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [gameToReturn, setGameToReturn] = useState(null);
 
     useEffect(() => {
@@ -21,16 +21,15 @@ function Return() {
 
     const fetchBorrowedGames = async () => {
         try {
-            const userId = localStorage.getItem('userId'); // รับ userId จาก localStorage
+            const userId = localStorage.getItem('userId');
             console.log("Fetching borrowed games for user ID:", userId);
-    
+
             const response = await axios.get(`http://localhost:8000/br/borrowed/${userId}`);
             console.log("Borrowed Games Response:", response.data);
-    
-            // กรองข้อมูลที่สถานะไม่ใช่ 'returning'
+
             const filteredGames = response.data.data.filter((game) => game.status !== 'returning');
-    
-            setBorrowedGames(filteredGames); // ตั้งค่า borrowedGames ด้วยข้อมูลที่กรองแล้ว
+
+            setBorrowedGames(filteredGames);
         } catch (error) {
             console.error("Error fetching borrowed games:", error);
         }
@@ -122,11 +121,8 @@ function Return() {
                                                 <p className="text-xl font-semibold ml-5">{game.game_name}</p>
                                                 <p className="text-black ml-5">{game.category_name}</p>
                                                 <p className="text-black ml-5">level : {game.level}</p>
-                                                <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                                 <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                    <div>
-                                                        <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {game.borrowedTimes}</p>
-                                                    </div>
+                                                    <p className="text-black" style={{ marginTop: -19 }}>players : {game.playerCounts} persons</p>
                                                     <button
                                                         className="btn-search"
                                                         onClick={() => openConfirmModal(game)}

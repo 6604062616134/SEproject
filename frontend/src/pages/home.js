@@ -393,11 +393,8 @@ function Home() {
                                             <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
                                             <p className="text-black ml-5">{boardgame.category_name}</p>
                                             <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
                                             <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <div>
-                                                    <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {boardgame.borrowedTimes}</p>
-                                                </div>
+                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
                                                 <button
                                                     className="btn-search"
                                                     onClick={() => handleBorrowClick(boardgame)}
@@ -423,11 +420,8 @@ function Home() {
                                             <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
                                             <p className="text-black ml-5">{boardgame.category_name}</p>
                                             <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
                                             <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <div>
-                                                    <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {boardgame.borrowedTimes}</p>
-                                                </div>
+                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
                                                 <button
                                                     className="btn-search"
                                                     onClick={() => handleBorrowClick(boardgame)}

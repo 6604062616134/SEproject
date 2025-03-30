@@ -27,6 +27,7 @@ function Homelogin() {
     const [hour, setHour] = useState('1');
     const [status, setStatus] = useState('available');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         fetchBoardgamesRecommended();
@@ -63,6 +64,8 @@ function Homelogin() {
         } catch (error) {
             console.error("Error fetching boardgames:", error);
             setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างในกรณีที่เกิดข้อผิดพลาด
+        } finally {
+            
         }
     };
 
@@ -138,6 +141,7 @@ function Homelogin() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
+        setIsSearching(true);
         setShowRecommended(false);
         setShowPopular(false);
         fetchBoardgames();
@@ -277,11 +281,11 @@ function Homelogin() {
             alert("Please log in to borrow a board game.");
             return;
         }
-    
+
         const day = document.querySelector('input[placeholder="DD"]').value;
         const month = document.querySelector('input[placeholder="MM"]').value;
         const year = document.querySelector('input[placeholder="YY"]').value;
-    
+
         // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
         if (day && month && year) {
             // เรียกฟังก์ชัน reservedSubmit หากมีการกรอกวันที่
@@ -323,6 +327,7 @@ function Homelogin() {
                 gameID: game.boardgame_id,
                 userID: userId,
                 status: 'borrowed',
+                hour: hour,
             }, { withCredentials: true });
 
             console.log("API Response:", response.data);
@@ -489,11 +494,8 @@ function Homelogin() {
                                             <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
                                             <p className="text-black ml-5">{boardgame.category_name}</p>
                                             <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
                                             <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <div>
-                                                    <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {boardgame.borrowedTimes}</p>
-                                                </div>
+                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
                                                 <button
                                                     className="btn-search"
                                                     onClick={() => handleBorrowClick(boardgame)}
@@ -519,11 +521,8 @@ function Homelogin() {
                                             <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
                                             <p className="text-black ml-5">{boardgame.category_name}</p>
                                             <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <p className="text-black ml-5">players : {boardgame.playerCounts} persons</p>
                                             <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <div>
-                                                    <p className="text-black" style={{ marginTop: -19 }}>borrowed times : {boardgame.borrowedTimes}</p>
-                                                </div>
+                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
                                                 <button
                                                     className="btn-search"
                                                     onClick={() => handleBorrowClick(boardgame)}
@@ -623,11 +622,8 @@ function Homelogin() {
                                         <p className="text-xl font-semibold ml-5">{game.boardgame_name}</p>
                                         <p className="text-black ml-5">{game.category_name}</p>
                                         <p className="text-black ml-5">level : {game.level}</p>
-                                        <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                            <div>
-                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
-                                            </div>
+                                            <p className="text-black" style={{ marginTop: -14 }}>players : {game.playerCounts} persons</p>
                                             <button
                                                 className="btn-search"
                                                 onClick={() => setSelectedGame(game)}
@@ -639,7 +635,9 @@ function Homelogin() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-2xl font-semibold text-black opacity-50">No results</p> // ข้อความแจ้งเตือนเมื่อไม่มีข้อมูล
+                            isSearching && (
+                                <p className="text-2xl font-semibold text-black opacity-50">No results</p>
+                            )
                         )}
                     </div>
                 </div>

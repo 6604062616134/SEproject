@@ -37,6 +37,9 @@ app.use('/reports', reportRoutes);
 const historyRoutes = require('./src/routes/historyRoutes');
 app.use('/history', historyRoutes);
 
+const reserveRoutes = require('./src/routes/reserveRoutes');
+app.use('/reserve', reserveRoutes);
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
   })

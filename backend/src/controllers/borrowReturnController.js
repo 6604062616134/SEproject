@@ -132,7 +132,7 @@ const BorrowReturnController = {
         try {
             const { userId } = req.params; // ดึง userId จาก URL
 
-            console.log("Fetching borrowed games for user ID:", userId);
+            //console.log("Fetching borrowed games for user ID:", userId);
 
             const sql = `
                 SELECT 
@@ -142,14 +142,13 @@ const BorrowReturnController = {
                     category.name AS category_name,
                     boardgames.level,
                     boardgames.playerCounts,
-                    boardgames.borrowedTimes,
                     borrowreturn.status,
                     borrowreturn.borrowingDate,
                     borrowreturn.returningDate
                 FROM borrowreturn
                 LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
                 LEFT JOIN category ON boardgames.categoryID = category.id
-                WHERE borrowreturn.userID = ? AND borrowreturn.status = 'borrowed'
+                WHERE borrowreturn.userID = ? AND borrowreturn.status != 'available'
                 ORDER BY borrowreturn.transactionID ASC
             `;
 
@@ -174,7 +173,7 @@ const BorrowReturnController = {
 
     async updateTransactionStatus(req, res) {
         try {
-            const { gameID, userID, accept, status } = req.body;
+            const { gameID, userID, accept, status, hour } = req.body;
 
             console.log("Received gameID:", gameID, "Received userID:", userID, "Received status:", status);
 
@@ -189,22 +188,47 @@ const BorrowReturnController = {
                 return res.status(404).json({ status: 'error', message: 'Game not found' });
             }
 
-            let updateStockSql = '';
+            // ตรวจสอบ stock ของเกม
+            const [stockCheckResult] = await db.query(`SELECT stock FROM boardgames WHERE id = ?`, [gameID]);
 
+            if (stockCheckResult.length === 0) {
+                return res.status(404).json({ status: 'error', message: 'boardgames not available' });
+            }
+
+            const { stock } = stockCheckResult[0];
+
+            // เงื่อนไขการจัดการ stock และสถานะ
             if (status === 'borrowed') {
-                // ลด stock เมื่อสถานะเป็น borrowed
-                updateStockSql = `UPDATE boardgames SET stock = stock - 1 WHERE id = ? AND stock > 0`;
+                if (stock > 0) {
+                    // ลด stock ลง 1
+                    const updateStockSql = `
+                    UPDATE boardgames
+                    SET stock = stock - 1
+                    WHERE id = ?
+                `;
+                    await db.query(updateStockSql, [gameID]);
+
+                    // ยังไม่อัปเดตสถานะเป็น borrowed
+                    return res.status(200).json({ status: 'success', message: 'Stock decreased by 1. Status not updated to borrowed yet.' });
+                } else if (stock === 0) {
+                    // อัปเดตสถานะเป็น borrowed
+                    const updateBorrowReturnSql = `
+                    UPDATE borrowreturn
+                    SET userID = ?, status = ?, modified = NOW()
+                    WHERE gameID = ?
+                `;
+                    await db.query(updateBorrowReturnSql, [userID, status, gameID]);
+
+                    return res.status(200).json({ status: 'success', message: 'Status updated to borrowed.' });
+                }
             }
 
-            if (!updateStockSql) {
-                return res.status(400).json({ status: 'error', message: 'Invalid stock update operation' });
-            }
-
-            // อัปเดต stock ในตาราง boardgames
-            const [stockResult] = await db.query(updateStockSql, [gameID]);
-
-            if (stockResult.affectedRows === 0) {
-                return res.status(400).json({ status: 'error', message: 'Stock update failed' });
+            // คำนวณวันเวลาที่ต้องคืนจาก hour
+            let returningDate = null;
+            if (hour) {
+                const borrowingDate = new Date(); // วันเวลาปัจจุบัน
+                returningDate = new Date(borrowingDate);
+                returningDate.setHours(returningDate.getHours() + parseInt(hour)); // เพิ่มชั่วโมงที่เลือก
             }
 
             // อัปเดต userID และสถานะในตาราง borrowreturn
@@ -213,21 +237,21 @@ const BorrowReturnController = {
                 SET userID = ?, status = ?, modified = NOW()
                 WHERE gameID = ?
             `;
-            const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, status, gameID]);
+            const [borrowReturnResult] = await db.query(updateBorrowReturnSql, [userID, status, returningDate, gameID]);
 
             if (borrowReturnResult.affectedRows === 0) {
                 return res.status(400).json({ status: 'error', message: 'Failed to update borrowreturn' });
             }
 
-            // เพิ่ม borrowedTimes ในตาราง boardgames
-            if (accept) {
-                const updateBorrowedTimesSql = `
-                UPDATE boardgames
-                SET borrowedTimes = borrowedTimes + 1
-                WHERE id = ?
-            `;
-                await db.query(updateBorrowedTimesSql, [gameID]);
-            }
+            // // เพิ่ม borrowedTimes ในตาราง boardgames
+            // if (accept) {
+            //     const updateBorrowedTimesSql = `
+            //     UPDATE boardgames
+            //     SET borrowedTimes = borrowedTimes + 1
+            //     WHERE id = ?
+            // `;
+            //     await db.query(updateBorrowedTimesSql, [gameID]);
+            // }
 
             if (status === 'available' || status === 'returning') {
                 const insertHistorySql = `

@@ -3,17 +3,18 @@ const db = require('../db');
 const HistoryController = {
     async getHistory(req, res) {
         try {
-            const { userID } = req.query; // Get userID from query parameters
+            const { userID } = req.query;
 
             if (!userID) {
                 return res.status(400).json({ error: 'Missing userID or gameID', status: 'error' });
             }
 
             const sql = `
-                SELECT h.*, b.name
+                SELECT h.*, b.* ,c.*
                 FROM history h
                 LEFT JOIN boardgames b ON h.gameID = b.id
-                WHERE h.userID = 2
+                LEFT JOIN category c ON b.categoryID = c.id
+                WHERE h.userID = ?
                 ORDER BY h.modified DESC
             `;
 
