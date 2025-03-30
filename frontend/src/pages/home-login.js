@@ -26,6 +26,7 @@ function Homelogin() {
     const [status, setStatus] = useState('available');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [isBorrowed, setIsBorrowed] = useState(false);
 
     useEffect(() => {
         fetchBoardgamesRecommended();
@@ -87,14 +88,19 @@ function Homelogin() {
             const response = await axios.get(`http://localhost:8000/br/getStatus/${gameId}`);
 
             if (response.data.data.length > 0) {
-                console.log("Game Status Response:", response.data.data[0]);
-                setStatus(response.data.data[0].status);
+                const gameStatus = response.data.data[0].status;
+                console.log("Game Status Response:", gameStatus);
+                setStatus(gameStatus);
+                setIsBorrowed(gameStatus === 'borrowed'); // อัปเดต isBorrowed
             } else {
                 console.warn("No status found for game ID:", gameId);
                 setStatus("unknown");
+                setIsBorrowed(false); // ตั้งค่าเป็น false หากไม่มีสถานะ
             }
         } catch (error) {
             console.error("Error fetching game status:", error);
+            setStatus("unknown");
+            setIsBorrowed(false); // ตั้งค่าเป็น false ในกรณีเกิดข้อผิดพลาด
         }
     };
 
@@ -262,11 +268,26 @@ function Homelogin() {
             alert("Please log in to borrow a board game.");
             return;
         }
-
+    
+        // ตรวจสอบสถานะล่าสุดจากฐานข้อมูล
+        try {
+            const response = await axios.get(`http://localhost:8000/br/getStatus/${selectedGame.boardgame_id}`);
+            const latestStatus = response.data.data[0]?.status;
+    
+            if (latestStatus === 'borrowed' || latestStatus === 'reserved' || latestStatus === 'returning') {
+                alert("This game is already borrowed and cannot be borrowed again.");
+                return;
+            }
+        } catch (error) {
+            console.error("Error fetching latest status:", error);
+            alert("Unable to verify the game status. Please try again later.");
+            return;
+        }
+    
         const day = document.querySelector('input[placeholder="DD"]').value;
         const month = document.querySelector('input[placeholder="MM"]').value;
         const year = document.querySelector('input[placeholder="YY"]').value;
-
+    
         // ตรวจสอบว่ามีการกรอกวันที่จองหรือไม่
         if (day && month && year) {
             // เรียกฟังก์ชัน reservedSubmit หากมีการกรอกวันที่
@@ -536,7 +557,7 @@ function Homelogin() {
                                     {isHourOpen && (
                                         <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                             <ul>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select hour</li>
+                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select Hour</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('2 Hours')}>2 Hours</li>
                                                 <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('3 Hours')}>3 Hours</li>
