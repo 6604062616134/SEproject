@@ -164,36 +164,7 @@ const BoardgamesController = {
             console.error('Error fetching recommended boardgames:', error);
             res.status(500).json({ error: 'Internal server error', status: "error" });
         }
-    },
-
-    async getPopularBoardgames(req, res) {
-        try {
-            const sql = `SELECT a.id AS boardgame_id, a.name AS boardgame_name, a.level, a.playerCounts, a.borrowedTimes, b.name AS category_name 
-                         FROM boardgames a 
-                         LEFT JOIN category b ON a.categoryID = b.id
-                         WHERE a.borrowedTimes >= 10`;
-    
-            const [rows] = await db.query(sql);
-    
-            if (rows.length === 0) {
-                return res.status(404).json({ error: 'No popular boardgames found', status: "error" });
-            }
-    
-            // ใช้ชื่อบอร์ดเกมเพื่อสร้าง path ของรูปภาพ
-            const boardgamesWithImagePaths = rows.map(row => ({
-                ...row,
-                imagePath: `/images/${encodeURIComponent(row.boardgame_name.replace(/\s+/g, '_').toLowerCase())}.jpg`  // ใช้ชื่อ boardgame_name เป็นชื่อไฟล์
-            }));
-    
-            res.json({ data: boardgamesWithImagePaths, status: "success" });
-            console.log("Popular boardgames:", rows);
-    
-        } catch (error) {
-            console.error('Error fetching popular boardgames:', error);
-            res.status(500).json({ error: 'Internal server error', status: "error" });
-        }
     }
-
 }
 
 module.exports = BoardgamesController;

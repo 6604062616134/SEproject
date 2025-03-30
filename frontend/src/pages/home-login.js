@@ -18,9 +18,7 @@ function Homelogin() {
     const [level, setLevel] = useState('');
     const [players, setPlayers] = useState('');
     const [showRecommended, setShowRecommended] = useState(true);
-    const [showPopular, setShowPopular] = useState(true);
     const [recommended, setRecommended] = useState([]);
-    const [popular, setPopular] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [isHourOpen, setIsHourOpen] = useState(false);
     const [selectedHour, setSelectedHour] = useState('Select Hour');
@@ -31,19 +29,18 @@ function Homelogin() {
 
     useEffect(() => {
         fetchBoardgamesRecommended();
-        fetchBoardgamesPopular();
         fetchGameStatus();
         fetchUsername();
     }, []);
 
     const fetchBoardgames = async () => {
         try {
-            console.log("Fetching boardgames with params:", {
-                name: searchTerm,
-                level: level !== 'Level' ? level : '',
-                playerCounts: players !== '2 Players' ? players : '',
-                categoryID: categoryId !== '' ? categoryId : ''
-            });
+            // console.log("Fetching boardgames with params:", {
+            //     name: searchTerm,
+            //     level: level !== 'Level' ? level : '',
+            //     playerCounts: players !== '2 Players' ? players : '',
+            //     categoryID: categoryId !== '' ? categoryId : ''
+            // });
 
             const response = await axios.get('http://localhost:8000/boardgames', {
                 params: {
@@ -72,22 +69,10 @@ function Homelogin() {
     const fetchBoardgamesRecommended = async () => {
         try {
             const response = await axios.get('http://localhost:8000/boardgames/recommended');
-            console.log("Recommended Games:", response.data.data); // ตรวจสอบข้อมูลที่ส่งกลับ
+            console.log("Recommended Games:", response.data.data);
             setRecommended(response.data.data);
         } catch (error) {
             console.error("Error fetching recommended boardgames:", error);
-        }
-    };
-
-    const fetchBoardgamesPopular = async () => {
-        try {
-            const response = await axios.get('http://localhost:8000/boardgames/popular');
-            console.log("API Response:", response.data.data);
-            setShowPopular(true);
-            setPopular(response.data.data);
-        } catch (error) {
-            console.error("Error fetching popular boardgames:", error);
-            setPopular([]);
         }
     };
 
@@ -123,7 +108,7 @@ function Homelogin() {
     };
 
     const handleBorrowClick = (boardgame) => {
-        console.log("Selected Boardgame in Borrow Click:", boardgame); // ตรวจสอบข้อมูลเกมที่เลือก
+        console.log("Selected Boardgame in Borrow Click:", boardgame);
 
         if (!boardgame || !boardgame.boardgame_id) {
             console.error("Error: Boardgame ID is missing", boardgame);
@@ -131,7 +116,7 @@ function Homelogin() {
             return;
         }
 
-        setSelectedGame(boardgame); // อัปเดตค่าที่เลือก
+        setSelectedGame(boardgame);
         fetchGameStatus(boardgame.boardgame_id);
     };
 
@@ -143,7 +128,6 @@ function Homelogin() {
         e.preventDefault();
         setIsSearching(true);
         setShowRecommended(false);
-        setShowPopular(false);
         fetchBoardgames();
     };
 
@@ -269,9 +253,6 @@ function Homelogin() {
     const handleCategoryClick = (category) => {
         handleCategorySelect(category);
         setShowRecommended(false);
-
-        //console.log("CCCC --> ", showRecommended);
-        setShowPopular(false);
         fetchBoardgames();
     };
 
@@ -327,13 +308,16 @@ function Homelogin() {
                 gameID: game.boardgame_id,
                 userID: userId,
                 status: 'borrowed',
-                hour: hour,
             }, { withCredentials: true });
 
             console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
                 alert('Borrow request sent successfully');
+
+                if (hour) {
+                    await createReturnDate(game.boardgame_id, userId, hour);
+                }
             } else {
                 alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
             }
@@ -342,6 +326,28 @@ function Homelogin() {
             alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
         }
     };
+
+    const createReturnDate = async (gameID, userID, hour) => {
+        try {
+            const response = await axios.put(`http://localhost:8000/br/createReturnDate`, {
+                gameID: gameID,
+                userID: userID,
+                hour: hour,
+            }, { withCredentials: true });
+    
+            console.log("Create return date Response:", response.data);
+    
+            if (response.data.status === 'success') {
+                // alert('Return date created successfully');
+                console.log('Return date created successfully');
+            } else {
+                alert(`Return date creation failed: ${response.data.message || "Unknown error"}`);
+            }
+    
+        } catch (error) {
+            console.error("Error creating return date:", error);
+        }
+    };    
 
     const reservedSubmit = async (game) => {
         // เมื่อมีการอินพุทข้อมูลจองบอร์ดเกมให้เรียกใช้ฟังก์ชันนี้
@@ -488,33 +494,6 @@ function Homelogin() {
                             <p className="text-2xl font-semibold ml-48">Recommended</p>
                             <div className="flex flex-row flex-wrap gap-4 justify-center">
                                 {recommended.map((boardgame) => (
-                                    <div key={boardgame.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
-                                        <img src={boardgame.imagePath} alt={boardgame.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
-                                        <div className="mt-3">
-                                            <p className="text-xl font-semibold ml-5">{boardgame.boardgame_name}</p>
-                                            <p className="text-black ml-5">{boardgame.category_name}</p>
-                                            <p className="text-black ml-5">level : {boardgame.level}</p>
-                                            <div className="flex justify-between gap-4 items-center ml-5 mr-2">
-                                                <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
-                                                <button
-                                                    className="btn-search"
-                                                    onClick={() => handleBorrowClick(boardgame)}
-                                                >
-                                                    Borrow
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {showPopular && (
-                        <div className='flex flex-col mt-10 mb-12 gap-4'>
-                            <p className="text-2xl font-semibold ml-48">Popular</p>
-                            <div className="flex flex-row flex-wrap gap-4 justify-center">
-                                {popular.map((boardgame) => (
                                     <div key={boardgame.boardgame_id} className="bg-transparent shadow-lg p-3" style={{ border: '1px solid black', borderRadius: '38px' }}>
                                         <img src={boardgame.imagePath} alt={boardgame.boardgame_name} className="w-[280px] h-[220px] object-fill" style={{ borderTopLeftRadius: '38px', borderTopRightRadius: '38px' }} />
                                         <div className="mt-3">
