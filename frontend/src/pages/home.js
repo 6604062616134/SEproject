@@ -26,8 +26,6 @@ function Home() {
     useEffect(() => {
         fetchBoardgamesRecommended();
         fetchGameStatus();
-        // fetchBoardgames(searchTerm);
-        // console.log("AAA --> ", showRecommended);
     }, []);
 
     const fetchBoardgames = async () => {
@@ -182,7 +180,7 @@ function Home() {
 
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
-    
+
         switch (category) {
             case 'Family':
                 setCategoryId('1');
@@ -382,46 +380,6 @@ function Home() {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* modalยืมบอร์ดเกม */}
-                    {selectedGame && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                            <div className="bg-[#ececec] p-6 rounded-lg w-[300px]" style={{ borderRadius: '35px' }}>
-                                <h3 className="font-bold text-xl">{selectedGame.boardgame_name}</h3>
-                                <div className="flex row gap-4 mt-4">
-                                    <p className="text-lg">Status:</p>
-                                    <p className={`text-lg font-semibold ${status === 'available' ? 'text-green-500' : 'text-red-500'}`}>
-                                        {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
-                                    </p>
-                                </div>
-                                <div className="flex flex-col gap-4 mt-4">
-                                    {/* ปุ่มสำหรับ Borrow */}
-                                    <button
-                                        className="btn-search"
-                                        onClick={() => handleBorrowClick(selectedGame)}
-                                    >
-                                        Borrow
-                                    </button>
-
-                                    {/* ปุ่มสำหรับ Booking */}
-                                    <button
-                                        className="btn-custom"
-                                        onClick={() => handleBookingClick(selectedGame)}
-                                    >
-                                        Booking
-                                    </button>
-                                </div>
-                                <div className="flex justify-end gap-3 mt-4">
-                                    <button
-                                        className="btn-custom"
-                                        onClick={() => setSelectedGame(null)}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     )}
