@@ -62,11 +62,23 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 type: 'Returning'
             }));
 
-            // รวมการแจ้งเตือนทั้งสองประเภทและเรียงลำดับตามวันที่ล่าสุดก่อน
-            const allNotifications = [...reserveNotifications, ...returnNotifications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            // ดึงข้อมูลการแจ้งเตือนการปฏิเสธ
+            const rejectionResponse = await axios.get(`http://localhost:8000/notifications/getnotireject/${userId}`, { withCredentials: true });
+            const rejectionNotifications = rejectionResponse.data.data.map(notification => ({
+                ...notification,
+                type: 'Rejection'
+            }));
+
+            // รวมการแจ้งเตือนทุกประเภทและเรียงลำดับตามวันที่ล่าสุดก่อน
+            const allNotifications = [
+                ...reserveNotifications,
+                ...returnNotifications,
+                ...rejectionNotifications // เพิ่มการแจ้งเตือนประเภท Rejection
+            ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             setNotifications(allNotifications);
             setHasNewNotification(allNotifications.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
+
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
@@ -179,18 +191,43 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                                         {notifications.map((notification, index) => (
                                             <li key={index} className="border-b py-2">
                                                 {notification.type === 'Returning' ? (
-                                                    <>  
-                                                        <p className="font-light text-medium">Return</p>
+                                                    <>
+                                                        <p className="font-light text-sm text-blue-500">Returning</p>
                                                         <p className="font-semibold text-lg">{notification.gameName}</p>
-                                                        <p className="font-medium text-sm">Borrowed : {new Date(notification.borrowingDate).toLocaleString()}</p>
-                                                        <p className="font-medium text-sm">Return : {new Date(notification.returningDate).toLocaleString()}</p>
+                                                        <div className="flex flex-row">
+                                                            <p className="font-bold text-sm text-black">Borrowed :</p>
+                                                            <p className="font-light text-sm ml-2">{new Date(notification.borrowingDate).toLocaleString()}</p>
+                                                        </div>
+                                                        <div className="flex flex-row">
+                                                            <p className="font-bold text-sm text-black">Return :</p>
+                                                            <p className="font-light text-sm ml-2">{new Date(notification.returningDate).toLocaleString()}</p>
+                                                        </div>
+                                                    </>
+                                                ) : notification.type === 'Rejection' ? (
+                                                    <>
+                                                        <p className="font-light text-sm text-red-500">Rejection</p>
+                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                        <div className='flex flex-row'>
+                                                            <p className="font-bold text-sm text-black">Reason :</p>
+                                                            <p className="font-light text-sm ml-2">{notification.message}</p>
+                                                        </div>
+                                                        <div className='flex flex-row'>
+                                                            <p className="font-bold text-sm">Date :</p>
+                                                            <p className="font-light text-sm ml-2">{new Date(notification.createdAt).toLocaleString()}</p>
+                                                        </div>
                                                     </>
                                                 ) : (
-                                                    <>  
-                                                        <p className="font-light text-medium">Reservation</p>
+                                                    <>
+                                                        <p className="font-light text-sm text-green-500">Reservation</p>
                                                         <p className="font-semibold text-lg">{notification.gameName}</p>
-                                                        <p className="font-medium text-sm">Category : {notification.categoryName}</p>
-                                                        <p className="font-medium text-sm">Status : {notification.status}</p>
+                                                        <div className="flex flex-row">
+                                                            <p className="font-bold text-sm text-black">Category :</p>
+                                                            <p className="font-light text-sm ml-2">{notification.categoryName}</p>
+                                                        </div>
+                                                        <div className="flex flex-row">
+                                                            <p className="font-bold text-sm text-black">Status :</p>
+                                                            <p className="font-medium text-green-500 text-sm ml-2">{notification.status}</p>
+                                                        </div>
                                                     </>
                                                 )}
                                             </li>
@@ -227,7 +264,6 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 </div>
             </div>
 
-            {/* ป็อปอัปยืนยัน Logout */}
             {isLogoutModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded-lg w-[300px]" style={{ borderRadius: '20px' }}>

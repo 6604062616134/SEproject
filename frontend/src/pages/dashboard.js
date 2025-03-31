@@ -10,6 +10,7 @@ function Dashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [transactions, setTransactions] = useState([]);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    const [rejectReason, setRejectReason] = useState('');
     const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
     useEffect(() => {
@@ -34,6 +35,7 @@ function Dashboard() {
 
     const closeRejectModal = () => {
         setSelectedTransactionId(null);
+        setRejectReason('');
         setIsRejectModalOpen(false);
     };
 
@@ -43,20 +45,20 @@ function Dashboard() {
 
     const handleAccept = async (transactionId) => {
         const transaction = transactions.find(t => t.transactionID === transactionId);
-    
+
         if (!transaction || !transaction.game_id || !transaction.user_name) {
             console.error("Transaction is missing required fields:", transaction);
             alert("Required data is missing. Please check the transaction.");
             return;
         }
-    
+
         try {
             const response = await axios.put('http://localhost:8000/br/admin/accept', {
                 gameID: transaction.game_id,
                 name: transaction.user_name, // ส่งชื่อผู้ใช้
                 status: 'returning', // หรือ 'borrowed' ขึ้นอยู่กับสถานะ
             });
-    
+
             if (response.data.status === 'success') {
                 setTransactions(transactions.filter(t => t.transactionID !== transactionId));
             } else {
@@ -68,26 +70,31 @@ function Dashboard() {
         }
     };
 
-    const handleReject = async (transactionId) => {
-        const transaction = transactions.find(t => t.transactionID === transactionId);
+    const handleReject = async () => {
+        if (!rejectReason.trim()) {
+            alert("Please provide a reason for rejection.");
+            return;
+        }
+    
+        const transaction = transactions.find(t => t.transactionID === selectedTransactionId);
     
         if (!transaction || !transaction.game_id || !transaction.user_id) {
             console.error("Transaction is missing required fields:", transaction);
             alert("Required data is missing. Please check the transaction.");
             return;
         }
-        
-        //แอดมินพิมพ์เหตุผลที่ปฏิเสธแล้วส่งไปในmessageแล้วเรียกเอพีไอโนติเพื่อส่งแจ้งเตือนให้ผู้ใช้(โนติจะถูกเกทรวมกันในfetchNotiอยู่แล้ว)
+    
         try {
-            const response = await axios.put(`http://localhost:8000/notifications/createnoti`, {
+            const response = await axios.post(`http://localhost:8000/notifications/createnoti`, {
                 gameID: transaction.game_id,
                 userID: transaction.user_id,
-                message: "Your request has been rejected by the admin."
+                message: rejectReason, // ส่งเหตุผลที่ปฏิเสธ
             });
     
             if (response.data.status === 'success') {
                 alert("The user has been notified about the rejection.");
-                setTransactions(transactions.filter(t => t.transactionID !== transactionId));
+                setTransactions(transactions.filter(t => t.transactionID !== selectedTransactionId));
+                closeRejectModal();
             } else {
                 alert(`Reject request failed: ${response.data.message || "Unknown error"}`);
             }
@@ -151,7 +158,7 @@ function Dashboard() {
                                             <td className='pt-4 pb-4'>{formatDate(transaction.borrowingDate)}</td>
                                             <td className='pt-4 pb-4 gap-4'>
                                                 <button className='btn-accept' onClick={() => handleAccept(transaction.transactionID)}>Accept</button>
-                                                <button className='btn-reject' onClick={() => handleReject(transaction.transactionID)}>Reject</button>
+                                                <button className='btn-reject' onClick={() => openRejectModal(transaction.transactionID)}>Reject</button>
                                             </td>
                                         </tr>
                                     ))
@@ -162,6 +169,34 @@ function Dashboard() {
                                 )}
                             </tbody>
                         </table>
+                        {isRejectModalOpen && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                <div className="bg-white p-6 rounded-lg w-[400px]" style={{ borderRadius: '30px', border: '1px solid black' }}>
+                                    <h3 className="font-bold text-2xl mb-4">Rejection</h3>
+                                    <textarea
+                                        className="w-full p-2 border border-black rounded-2xl"
+                                        rows="5"
+                                        placeholder="Enter the reason for rejection..."
+                                        value={rejectReason}
+                                        onChange={(e) => setRejectReason(e.target.value)}
+                                    ></textarea>
+                                    <div className="flex justify-end gap-3 mt-4">
+                                        <button
+                                            className="btn-custom"
+                                            onClick={closeRejectModal}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="btn-search"
+                                            onClick={handleReject}
+                                        >
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

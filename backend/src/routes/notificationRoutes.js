@@ -4,7 +4,8 @@ const notificationController = require('../controllers/notificationController');
 
 router.get('/getnotires/:id', notificationController.getReserveNotificationsById);
 router.get('/getnotireturn/:id', notificationController.getReturnNotificationsById);
+router.get('/getnotireject/:id', notificationController.getRejectNotificationsById);
 
-router.put('/createnoti', notificationController.createNotification);
+router.post('/createnoti', notificationController.createNotification);
 
 module.exports = router;
