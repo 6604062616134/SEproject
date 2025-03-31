@@ -103,7 +103,7 @@ function Homelogin() {
         }
     };
 
-    const handleBorrowClick = async (game) => {
+    const handleBorrowClick = async (game, selectedHour) => {
         const userId = localStorage.getItem('userId');
 
         if (!userId) {
@@ -116,17 +116,25 @@ function Homelogin() {
             return;
         }
 
+        if (selectedHour === 'Select Hour') {
+            alert("Please select a borrowing duration.");
+            return;
+        }
+
         try {
             const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
                 gameID: game.boardgame_id,
                 userID: userId,
                 status: 'borrowed',
+                duration: selectedHour, // ส่งจำนวนชั่วโมงไปด้วย
             }, { withCredentials: true });
-
-            console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
                 alert('Borrow request sent successfully');
+
+                // เรียกใช้ createReturnDate เพื่อสร้างวันที่คืน
+                await createReturnDate(game.boardgame_id, userId, selectedHour);
+
                 setSelectedGame(null); // ปิด modal
             } else {
                 alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
@@ -155,8 +163,6 @@ function Homelogin() {
                 gameID: game.boardgame_id,
                 userID: userId,
             }, { withCredentials: true });
-
-            console.log("API Response:", response.data);
 
             if (response.data.status === 'success') {
                 alert('Reservation created successfully');
@@ -214,15 +220,6 @@ function Homelogin() {
             case '3 Hours':
                 setHour('3');
                 break;
-            case '4 Hours':
-                setHour('4');
-                break;
-            case '5 Hours':
-                setHour('5');
-                break;
-            case 'Select hour':
-                setHour('');
-                break;
             default:
                 setHour('');
         }
@@ -231,7 +228,7 @@ function Homelogin() {
 
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
-    
+
         switch (category) {
             case 'Family':
                 setCategoryId('1');
@@ -557,7 +554,7 @@ function Homelogin() {
                                                 <p className="text-black" style={{ marginTop: -19 }}>players : {boardgame.playerCounts} persons</p>
                                                 <button
                                                     className="btn-search"
-                                                    onClick={() => handleBorrowClick(boardgame)}
+                                                    onClick={() => setSelectedGame(boardgame)} // ใช้ boardgame แทน game
                                                 >
                                                     Borrow
                                                 </button>
@@ -572,7 +569,15 @@ function Homelogin() {
                     {/* modalยืมบอร์ดเกม */}
                     {selectedGame && (
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                            <div className="bg-[#ececec] p-6 rounded-lg w-[300px]" style={{ borderRadius: '35px' }}>
+                            <div className="bg-[#ececec] p-6 rounded-lg w-[350px] relative" style={{ borderRadius: '35px', border: '1px solid black' }}>
+                                {/* ปุ่มกากบาทสำหรับปิด modal */}
+                                <button
+                                    className="absolute top-2 right-6 text-gray-800 hover:text-black"
+                                    onClick={() => setSelectedGame(null)}
+                                    style={{ fontSize: '25px', fontWeight: 'bold' }}
+                                >
+                                    &times;
+                                </button>
                                 <h3 className="font-bold text-xl">{selectedGame.boardgame_name}</h3>
                                 <div className="flex row gap-4 mt-4">
                                     <p className="text-lg">Status:</p>
@@ -580,30 +585,74 @@ function Homelogin() {
                                         {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
                                 </div>
-                                <div className="flex flex-col gap-4 mt-4">
+                                <div className='flex flex-row gap-2 justify-between'>
+                                    <p className='text-lg font-semibold mt-2' style={{ position: 'relative', top: '10px' }}>Borrow</p>
+                                    {/* ดรอปดาวน์สำหรับเลือกจำนวนชั่วโมง */}
+                                    <div className="relative mt-2">
+                                        <button
+                                            type="button"
+                                            className="btn-custom w-full text-left"
+                                            style={{ width: '132px', height: '40px' }}
+                                            onClick={toggleHourDropdown}
+                                        >
+                                            {selectedHour}
+                                            <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                                        </button>
+                                        {isHourOpen && (
+                                            <div className="absolute mt-2 w-full bg-white border border-black rounded-3xl shadow-lg z-10">
+                                                <ul>
+                                                    <li
+                                                        className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer"
+                                                        onClick={() => handleHourSelect('Select')}
+                                                    >
+                                                        Select
+                                                    </li>
+                                                    <li
+                                                        className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer"
+                                                        onClick={() => handleHourSelect('1 Hour')}
+                                                    >
+                                                        1 Hour
+                                                    </li>
+                                                    <li
+                                                        className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer"
+                                                        onClick={() => handleHourSelect('2 Hours')}
+                                                    >
+                                                        2 Hours
+                                                    </li>
+                                                    <li
+                                                        className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer"
+                                                        onClick={() => handleHourSelect('3 Hours')}
+                                                    >
+                                                        3 Hours
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
                                     {/* ปุ่มสำหรับ Borrow */}
                                     <button
-                                        className="btn-search"
-                                        onClick={() => handleBorrowClick(selectedGame)}
+                                        className="btn-search" style={{ width: '90px', height: '40px', marginTop: '10px', position: 'relative', top: '3px' }}
+                                        onClick={() => handleBorrowClick(selectedGame, selectedHour)} // ส่ง selectedHour ไปด้วย
                                     >
                                         Borrow
                                     </button>
-
-                                    {/* ปุ่มสำหรับ Booking */}
-                                    <button
-                                        className="btn-custom"
-                                        onClick={() => handleBookingClick(selectedGame)}
-                                    >
-                                        Booking
-                                    </button>
                                 </div>
-                                <div className="flex justify-end gap-3 mt-4">
-                                    <button
-                                        className="btn-custom"
-                                        onClick={() => setSelectedGame(null)}
-                                    >
-                                        Cancel
-                                    </button>
+                                <div className="flex items-center justify-center my-4">
+                                    <div className="border-t border-gray-400 w-full"></div>
+                                    <span className="mx-4 text-gray-500">or</span>
+                                    <div className="border-t border-gray-400 w-full"></div>
+                                </div>
+                                <div className="flex flex-col gap-4 mt-4 mb-2">
+                                    <div className='flex flex-row justify-between'>
+                                        <p className='text-lg font-semibold mt-2'>Booking</p>
+                                        {/* ปุ่มสำหรับ Booking */}
+                                        <button
+                                            className="btn-search"
+                                            onClick={() => handleBookingClick(selectedGame)} // เรียกฟังก์ชันจอง
+                                        >
+                                            Booking
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -626,7 +675,7 @@ function Homelogin() {
                                             </div>
                                             <button
                                                 className="btn-search"
-                                                onClick={() => setSelectedGame(game)}
+                                                onClick={() => setSelectedGame(game)} // ใช้ game ที่ถูกส่งผ่านใน map
                                             >
                                                 Borrow
                                             </button>

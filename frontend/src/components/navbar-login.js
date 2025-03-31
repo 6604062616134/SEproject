@@ -115,7 +115,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 return;
             }
 
-            if(!reportMessage){
+            if (!reportMessage) {
                 alert('Please enter message before submit report!');
                 return;
             }
@@ -148,28 +148,55 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                             )}
                         </button>
                         {isNotificationOpen && (
-                            <div className="absolute top-16 right-4 bg-white text-black p-4 rounded shadow-lg z-50 w-64">
-                                <h2 className="font-semibold text-lg">Notifications</h2>
-                                <ul className="mt-2">
-                                    {notifications.map((notification, index) => (
-                                        <li key={index} className="border-b py-2">
-                                            {notification.type === 'Returning' ? (
-                                                <>
-                                                    <p>Game: {notification.gameName}</p>
-                                                    <p>Borrowed Date: {new Date(notification.borrowingDate).toLocaleString()}</p>
-                                                    <p>Return Date: {new Date(notification.returningDate).toLocaleString()}</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <p>Game: {notification.gameName}</p>
-                                                    <p>Category: {notification.categoryName}</p>
-                                                    <p>Status: {notification.status}</p>
-                                                </>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button className="mt-2 bg-black text-white w-full py-1 rounded hover:bg-gray-700" onClick={handleNotificationClick}>ปิด</button>
+                            <div
+                                className="fixed inset-0 bg-transparent z-40"
+                                onClick={(e) => {
+                                    // ปิด modal เมื่อคลิกนอก modal
+                                    if (e.target === e.currentTarget) {
+                                        setIsNotificationOpen(false);
+                                    }
+                                }}
+                            >
+                                <div
+                                    className="absolute top-16 right-4 bg-white text-black p-4 rounded-3xl shadow-xl z-50 w-64 custom-scrollbar w-[300px]"
+                                    style={{ border: '1px solid black', maxHeight: '300px', overflowY: 'auto' }}
+                                >
+                                    {/* ปุ่มกากบาทสำหรับปิด */}
+                                    <div className="bg-white z-10 pb-2">
+                                        <div className="absolute right-3">
+                                            <button
+                                                className="text-black text-xl font-bold hover:text-gray-700"
+                                                onClick={() => setIsNotificationOpen(false)}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                        <h2 className="font-semibold text-lg">Notifications</h2>
+                                    </div>
+
+                                    {/* เนื้อหาการแจ้งเตือน */}
+                                    <ul className="mt-2">
+                                        {notifications.map((notification, index) => (
+                                            <li key={index} className="border-b py-2">
+                                                {notification.type === 'Returning' ? (
+                                                    <>  
+                                                        <p className="font-light text-medium">Return</p>
+                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                        <p className="font-medium text-sm">Borrowed : {new Date(notification.borrowingDate).toLocaleString()}</p>
+                                                        <p className="font-medium text-sm">Return : {new Date(notification.returningDate).toLocaleString()}</p>
+                                                    </>
+                                                ) : (
+                                                    <>  
+                                                        <p className="font-light text-medium">Reservation</p>
+                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                        <p className="font-medium text-sm">Category : {notification.categoryName}</p>
+                                                        <p className="font-medium text-sm">Status : {notification.status}</p>
+                                                    </>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
                         )}
                     </div>
