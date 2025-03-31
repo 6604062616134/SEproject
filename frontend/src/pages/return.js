@@ -23,12 +23,14 @@ function Return() {
         try {
             const userId = localStorage.getItem('userId');
             console.log("Fetching borrowed games for user ID:", userId);
-
+    
             const response = await axios.get(`http://localhost:8000/br/borrowed/${userId}`);
             console.log("Borrowed Games Response:", response.data);
-
-            const filteredGames = response.data.data.filter((game) => game.status !== 'returning');
-
+    
+            // กรองเฉพาะเกมที่ยังไม่ได้คืนหรือถูกปฏิเสธการคืน
+            const filteredGames = response.data.data.filter((game) => game.status !== 'returning' || game.isReject === 1);
+            console.log("Filtered Borrowed Games:", filteredGames);
+    
             setBorrowedGames(filteredGames);
         } catch (error) {
             console.error("Error fetching borrowed games:", error);

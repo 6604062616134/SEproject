@@ -196,11 +196,21 @@ const NotificationController = {
                 [gameID, userID, message, 'Rejection']
             );
 
-            if (result.affectedRows > 0) {
-                return res.status(201).json({ status: 'success', message: 'Notification created successfully' });
-            } else {
+            if (result.affectedRows === 0) {
                 return res.status(500).json({ status: 'error', message: 'Failed to create notification' });
             }
+
+            // อัปเดตคอลัมน์ isReject ในตาราง borrowreturn
+            const [updateResult] = await db.query(
+                `UPDATE borrowreturn SET isReject = 1, modified = NOW() WHERE gameID = ? AND userID = ?`,
+                [gameID, userID]
+            );
+
+            if (updateResult.affectedRows === 0) {
+                return res.status(404).json({ status: 'error', message: 'Failed to update borrowreturn record' });
+            }
+
+            return res.status(201).json({ status: 'success', message: 'Notification created and borrowreturn updated successfully' });
         } catch (error) {
             console.error('Error creating notification:', error);
             res.status(500).json({ error: 'Internal server error' });
@@ -210,7 +220,7 @@ const NotificationController = {
     async getRejectNotificationsById(req, res) {
         try {
             const { id } = req.params;
-
+    
             // ดึงข้อมูลการแจ้งเตือนการปฏิเสธจากตาราง notification
             const [rows] = await db.query(
                 `SELECT 
@@ -226,11 +236,12 @@ const NotificationController = {
                 ORDER BY n.created DESC`,
                 [id]
             );
-
+    
+            // หากไม่มีข้อมูล ให้ส่งข้อมูลว่างกลับไป
             if (rows.length === 0) {
-                return res.status(404).json({ status: 'error', message: 'No rejection notifications found' });
+                return res.status(200).json({ data: [], status: 'success', message: 'No rejection notifications found' });
             }
-
+    
             // ส่งข้อมูลการแจ้งเตือนกลับไปยัง client
             res.json({ data: rows, status: 'success' });
         } catch (error) {

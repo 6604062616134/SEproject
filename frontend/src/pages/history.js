@@ -99,7 +99,7 @@ function History() {
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-xl font-semibold text-black opacity-50">No results</p>
+                                <p className="text-xl font-light text-black opacity-50">No boardgames history</p>
                             )}
                         </div>
                     </div>

@@ -144,12 +144,13 @@ const BorrowReturnController = {
                 boardgames.playerCounts,
                 borrowreturn.status,
                 borrowreturn.borrowingDate,
+                borrowreturn.isReject,
                 boardgames.stock
             FROM borrowreturn
             LEFT JOIN boardgames ON borrowreturn.gameID = boardgames.id
             LEFT JOIN category ON boardgames.categoryID = category.id
             WHERE borrowreturn.userID = ? 
-              AND borrowreturn.isBorrow = 1
+              AND borrowreturn.isBorrow = 1 || borrowreturn.isReject = 1
             ORDER BY borrowreturn.transactionID ASC
             `;
 
@@ -253,59 +254,59 @@ const BorrowReturnController = {
     async createReturningDate(req, res) {
         try {
             const { gameID, userID, hour } = req.body;
-    
+
             if (!gameID || !userID) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-    
+
             if (!hour) {
                 return res.status(400).json({ status: 'error', message: 'Missing hour' });
             }
-    
+
             // ดึง borrowingDate จากฐานข้อมูล
             const [borrowRecord] = await db.query(
                 `SELECT borrowingDate FROM borrowreturn WHERE gameID = ? AND userID = ?`,
                 [gameID, userID]
             );
-    
+
             if (borrowRecord.length === 0 || !borrowRecord[0].borrowingDate) {
                 return res.status(404).json({ status: 'error', message: 'Borrowing date not found' });
             }
-    
+
             const borrowingDate = new Date(borrowRecord[0].borrowingDate);
             console.log("Borrowing Date:", borrowingDate);
-    
+
             // คำนวณวันที่คืนโดยการบวกชั่วโมงที่เลือก
             const returnDate = new Date(borrowingDate);
             returnDate.setHours(returnDate.getHours() + parseInt(hour));
-    
+
             const formattedReturnDate = returnDate.toISOString().slice(0, 19).replace('T', ' ');
             console.log("Calculated Return Date:", formattedReturnDate);
-    
+
             // ดึง categoryID จาก gameID
             const [categoryResult] = await db.query(
                 `SELECT categoryID FROM boardgames WHERE id = ?`,
                 [gameID]
             );
-    
+
             if (categoryResult.length === 0 || !categoryResult[0].categoryID) {
                 return res.status(404).json({ status: 'error', message: 'Category not found for the given gameID' });
             }
-    
+
             // กำหนดค่า categoryID
             const categoryID = categoryResult[0].categoryID;
             console.log("Category ID:", categoryID);
-    
+
             // เพิ่มข้อมูลลงในตาราง returning
             const insertReturnSql = `
                 INSERT INTO \`returning\` (gameID, userID, categoryID, returnDate)
                 VALUES (?, ?, ?, ?)
             `;
-    
+
             await db.query(insertReturnSql, [gameID, userID, categoryID, formattedReturnDate]);
-    
+
             res.status(200).json({ status: 'success', message: 'Return date created successfully' });
-    
+
         } catch (error) {
             console.error('Error updating returning date:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });
@@ -419,6 +420,18 @@ const BorrowReturnController = {
                 return res.status(404).json({ status: 'error', message: 'Failed to update transaction' });
             }
 
+            // อัพเดตคอลัมน์ isReject เป็น 0
+            const updateIsRejectSql = `
+            UPDATE borrowreturn
+            SET isReject = 0, modified = NOW()
+            WHERE gameID = ? AND userID = ?
+        `;
+            const [updateIsRejectResult] = await db.query(updateIsRejectSql, [game_id, user_id]);
+
+            if (updateIsRejectResult.affectedRows === 0) {
+                return res.status(404).json({ status: 'error', message: 'Failed to update isReject column' });
+            }
+
             res.status(200).json({ status: 'success', message: 'Game status updated to returning' });
         } catch (error) {
             console.error('Error returning game:', error);
@@ -452,19 +465,31 @@ const BorrowReturnController = {
     async adminRejectRequest(req, res) {
         try {
             const { gameID, userID, reason } = req.body;
-    
+
             if (!gameID || !userID || !reason) {
                 return res.status(400).json({ status: 'error', message: 'Missing required fields' });
             }
-    
-            // บันทึกเหตุผลการปฏิเสธในฐานข้อมูล (ตัวอย่าง)
+
+            // อัปเดตสถานะ isReject เป็น 1 ในตาราง borrowreturn
             const sql = `
-                INSERT INTO notifications (userID, gameID, message, created)
-                VALUES (?, ?, ?, NOW())
+                UPDATE borrowreturn
+                SET isReject = 1, modified = NOW()
+                WHERE gameID = ? AND userID = ?
             `;
-            await db.query(sql, [userID, gameID, reason]);
-    
-            res.status(200).json({ status: 'success', message: 'Rejection notification sent successfully' });
+            const [result] = await db.query(sql, [gameID, userID]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ status: 'error', message: 'Failed to update transaction' });
+            }
+
+            // เพิ่มการแจ้งเตือนการปฏิเสธในตาราง notification
+            const notificationSql = `
+                INSERT INTO notification (gameID, userID, message, rejectType, created)
+                VALUES (?, ?, ?, 'Rejection', NOW())
+            `;
+            await db.query(notificationSql, [gameID, userID, reason]);
+
+            res.status(200).json({ status: 'success', message: 'Request rejected successfully' });
         } catch (error) {
             console.error('Error in adminRejectRequest:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });

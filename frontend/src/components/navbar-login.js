@@ -40,6 +40,55 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
         fetchNotification();
     }, [navigate]);
 
+    // const fetchNotification = async () => {
+    //     try {
+    //         const userId = localStorage.getItem('userId');
+    //         if (!userId) {
+    //             console.error('User ID not found in localStorage');
+    //             return;
+    //         }
+
+    //         // ดึงข้อมูลการแจ้งเตือนการจอง
+    //         const reserveResponse = await axios.get(`http://localhost:8000/notifications/getnotires/${userId}`, { withCredentials: true });
+    //         const reserveNotifications = reserveResponse.data.data.map(notification => ({
+    //             ...notification,
+    //             type: 'Reserve'
+    //         }));
+
+    //         // ดึงข้อมูลการแจ้งเตือนการคืน
+    //         const returnResponse = await axios.get(`http://localhost:8000/notifications/getnotireturn/${userId}`, { withCredentials: true });
+    //         const returnNotifications = returnResponse.data.data.map(notification => ({
+    //             ...notification,
+    //             type: 'Returning'
+    //         }));
+
+    //         // ดึงข้อมูลการแจ้งเตือนการปฏิเสธ
+    //         const rejectionResponse = await axios.get(`http://localhost:8000/notifications/getnotireject/${userId}`, { withCredentials: true });
+    //         const rejectionNotifications = rejectionResponse.data.data.map(notification => ({
+    //             ...notification,
+    //             type: 'Rejection'
+    //         }));
+
+    //         // รวมการแจ้งเตือนทุกประเภทและเรียงลำดับตามวันที่ล่าสุดก่อน
+    //         const allNotifications = [
+    //             ...reserveNotifications,
+    //             ...returnNotifications,
+    //             ...rejectionNotifications // เพิ่มการแจ้งเตือนประเภท Rejection
+    //         ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    //         setNotifications(allNotifications);
+    //         setHasNewNotification(allNotifications.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
+
+    //     } catch (error) {
+    //         if (error.response && error.response.status === 401) {
+    //             alert('Session expired. Please log in again.');
+    //             navigate('/login');
+    //         } else {
+    //             console.error('Error fetching notifications:', error);
+    //         }
+    //     }
+    // };
+    
     const fetchNotification = async () => {
         try {
             const userId = localStorage.getItem('userId');
@@ -47,38 +96,43 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 console.error('User ID not found in localStorage');
                 return;
             }
-
-            // ดึงข้อมูลการแจ้งเตือนการจอง
-            const reserveResponse = await axios.get(`http://localhost:8000/notifications/getnotires/${userId}`, { withCredentials: true });
-            const reserveNotifications = reserveResponse.data.data.map(notification => ({
-                ...notification,
-                type: 'Reserve'
-            }));
-
-            // ดึงข้อมูลการแจ้งเตือนการคืน
-            const returnResponse = await axios.get(`http://localhost:8000/notifications/getnotireturn/${userId}`, { withCredentials: true });
-            const returnNotifications = returnResponse.data.data.map(notification => ({
-                ...notification,
-                type: 'Returning'
-            }));
-
-            // ดึงข้อมูลการแจ้งเตือนการปฏิเสธ
-            const rejectionResponse = await axios.get(`http://localhost:8000/notifications/getnotireject/${userId}`, { withCredentials: true });
-            const rejectionNotifications = rejectionResponse.data.data.map(notification => ({
-                ...notification,
-                type: 'Rejection'
-            }));
-
-            // รวมการแจ้งเตือนทุกประเภทและเรียงลำดับตามวันที่ล่าสุดก่อน
-            const allNotifications = [
-                ...reserveNotifications,
-                ...returnNotifications,
-                ...rejectionNotifications // เพิ่มการแจ้งเตือนประเภท Rejection
-            ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-            setNotifications(allNotifications);
-            setHasNewNotification(allNotifications.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
-
+    
+            let allNotifications = [];
+    
+            // ฟังก์ชันช่วยดึงข้อมูลและจัดการข้อผิดพลาด
+            const fetchNotifications = async (url, type) => {
+                try {
+                    const response = await axios.get(url, { withCredentials: true });
+                    return response.data.data.map(notification => ({
+                        ...notification,
+                        type
+                    }));
+                } catch (error) {
+                    console.warn(`Failed to fetch ${type} notifications:`, error);
+                    return []; // ถ้าดึงไม่ได้ ให้ส่งเป็นอาร์เรย์ว่างแทน
+                }
+            };
+    
+            // ดึงข้อมูลจากแต่ละประเภท
+            const reserveNotifications = await fetchNotifications(`http://localhost:8000/notifications/getnotires/${userId}`, 'Reserve');
+            const returnNotifications = await fetchNotifications(`http://localhost:8000/notifications/getnotireturn/${userId}`, 'Returning');
+            const rejectionNotifications = await fetchNotifications(`http://localhost:8000/notifications/getnotireject/${userId}`, 'Rejection');
+    
+            // รวมการแจ้งเตือนทั้งหมด
+            allNotifications = [...reserveNotifications, ...returnNotifications, ...rejectionNotifications];
+    
+            // เรียงลำดับตามวันที่ล่าสุดก่อน
+            allNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+            // ตรวจสอบว่ามีการแจ้งเตือนหรือไม่
+            if (allNotifications.length > 0) {
+                setNotifications(allNotifications);
+                setHasNewNotification(true);
+            } else {
+                setNotifications([{ message: 'No notifications' }]); // แสดงข้อความแทน
+                setHasNewNotification(false);
+            }
+    
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
@@ -87,7 +141,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 console.error('Error fetching notifications:', error);
             }
         }
-    };
+    };    
 
     const openLogoutModal = () => setIsLogoutModalOpen(true);
     const closeLogoutModal = () => setIsLogoutModalOpen(false);
@@ -187,51 +241,55 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                                     </div>
 
                                     {/* เนื้อหาการแจ้งเตือน */}
-                                    <ul className="mt-2">
-                                        {notifications.map((notification, index) => (
-                                            <li key={index} className="border-b py-2">
-                                                {notification.type === 'Returning' ? (
-                                                    <>
-                                                        <p className="font-light text-sm text-blue-500">Returning</p>
-                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
-                                                        <div className="flex flex-row">
-                                                            <p className="font-bold text-sm text-black">Borrowed :</p>
-                                                            <p className="font-light text-sm ml-2">{new Date(notification.borrowingDate).toLocaleString()}</p>
-                                                        </div>
-                                                        <div className="flex flex-row">
-                                                            <p className="font-bold text-sm text-black">Return :</p>
-                                                            <p className="font-light text-sm ml-2">{new Date(notification.returningDate).toLocaleString()}</p>
-                                                        </div>
-                                                    </>
-                                                ) : notification.type === 'Rejection' ? (
-                                                    <>
-                                                        <p className="font-light text-sm text-red-500">Rejection</p>
-                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
-                                                        <div className='flex flex-row'>
-                                                            <p className="font-bold text-sm text-black">Reason :</p>
-                                                            <p className="font-light text-sm ml-2">{notification.message}</p>
-                                                        </div>
-                                                        <div className='flex flex-row'>
-                                                            <p className="font-bold text-sm">Date :</p>
-                                                            <p className="font-light text-sm ml-2">{new Date(notification.createdAt).toLocaleString()}</p>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <p className="font-light text-sm text-green-500">Reservation</p>
-                                                        <p className="font-semibold text-lg">{notification.gameName}</p>
-                                                        <div className="flex flex-row">
-                                                            <p className="font-bold text-sm text-black">Category :</p>
-                                                            <p className="font-light text-sm ml-2">{notification.categoryName}</p>
-                                                        </div>
-                                                        <div className="flex flex-row">
-                                                            <p className="font-bold text-sm text-black">Status :</p>
-                                                            <p className="font-medium text-green-500 text-sm ml-2">{notification.status}</p>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </li>
-                                        ))}
+                                    <ul>
+                                        {notifications.length > 0 ? (
+                                            notifications.map((notification, index) => (
+                                                <li key={index} className="border-b mt-2 pb-2">
+                                                    {notification.type === 'Returning' ? (
+                                                        <>
+                                                            <p className="font-light text-sm text-blue-500">Returning</p>
+                                                            <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm text-black">Borrowed :</p>
+                                                                <p className="font-light text-sm ml-2">{new Date(notification.borrowingDate).toLocaleString()}</p>
+                                                            </div>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm text-black">Return :</p>
+                                                                <p className="font-light text-sm ml-2">{new Date(notification.returningDate).toLocaleString()}</p>
+                                                            </div>
+                                                        </>
+                                                    ) : notification.type === 'Rejection' ? (
+                                                        <>
+                                                            <p className="font-light text-sm text-red-500">Rejection</p>
+                                                            <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm text-black">Reason :</p>
+                                                                <p className="font-light text-sm ml-2">{notification.message}</p>
+                                                            </div>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm">Date :</p>
+                                                                <p className="font-light text-sm ml-2">{new Date(notification.createdAt).toLocaleString()}</p>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <p className="font-light text-sm text-green-500">Reservation</p>
+                                                            <p className="font-semibold text-lg">{notification.gameName}</p>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm text-black">Category :</p>
+                                                                <p className="font-light text-sm ml-2">{notification.categoryName}</p>
+                                                            </div>
+                                                            <div className="flex flex-row">
+                                                                <p className="font-bold text-sm text-black">Status :</p>
+                                                                <p className="font-medium text-green-500 text-sm ml-2">{notification.status}</p>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <p className="text-center text-gray-500 mt-4">No notifications</p>
+                                        )}
                                     </ul>
                                 </div>
                             </div>
