@@ -115,6 +115,11 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 return;
             }
 
+            if(!reportMessage){
+                alert('Please enter message before submit report!');
+                return;
+            }
+
             await axios.post('http://localhost:8000/reports/createReport', { userID, message: reportMessage }, { withCredentials: true });
             alert('Report submitted successfully!');
             setReportMessage('');

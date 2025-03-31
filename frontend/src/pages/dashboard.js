@@ -76,12 +76,13 @@ function Dashboard() {
             alert("Required data is missing. Please check the transaction.");
             return;
         }
-    
+        
+        //แอดมินพิมพ์เหตุผลที่ปฏิเสธแล้วส่งไปในmessageแล้วเรียกเอพีไอโนติเพื่อส่งแจ้งเตือนให้ผู้ใช้(โนติจะถูกเกทรวมกันในfetchNotiอยู่แล้ว)
         try {
-            const response = await axios.post(`http://localhost:8000/br/admin/reject`, {
+            const response = await axios.put(`http://localhost:8000/notifications/createnoti`, {
                 gameID: transaction.game_id,
-                userID: transaction.user_id, // ส่ง userID ของผู้ใช้
-                reason: "Your request has been rejected by the admin." // เหตุผลในการปฏิเสธ
+                userID: transaction.user_id,
+                message: "Your request has been rejected by the admin."
             });
     
             if (response.data.status === 'success') {

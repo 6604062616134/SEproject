@@ -20,14 +20,12 @@ function Home() {
     const [showRecommended, setShowRecommended] = useState(true);
     const [recommended, setRecommended] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
-    const [searched, setSearched] = useState(false);
-    const [isHourOpen, setIsHourOpen] = useState(false);
-    const [selectedHour, setSelectedHour] = useState('1 Hour');
-    const [hour, setHour] = useState('1');
     const [status, setStatus] = useState('available');
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         fetchBoardgamesRecommended();
+        fetchGameStatus();
         // fetchBoardgames(searchTerm);
         // console.log("AAA --> ", showRecommended);
     }, []);
@@ -81,9 +79,67 @@ function Home() {
         }
     };
 
-    const handleBorrowClick = (boardgame) => {
-        setSelectedGame(boardgame);
-        fetchGameStatus(boardgame.boardgame_id);
+    const handleBorrowClick = async (game) => {
+        const userId = localStorage.getItem('userId'); // ตรวจสอบ userId ใน localStorage
+
+        if (!userId) {
+            alert("Please log in to borrow a board game.");
+            return;
+        }
+
+        // if (!game || !game.boardgame_id) {
+        //     alert("Game ID is missing.");
+        //     return;
+        // }
+
+        // try {
+        //     const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+        //         gameID: game.boardgame_id,
+        //         userID: userId,
+        //         status: 'borrowed',
+        //     }, { withCredentials: true });
+
+        //     if (response.data.status === 'success') {
+        //         alert('Borrow request sent successfully');
+        //         setSelectedGame(null); // ปิด modal
+        //     } else {
+        //         alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
+        //     }
+        // } catch (error) {
+        //     console.error('Error submitting borrow request:', error.response?.data || error.message);
+        //     alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
+        // }
+    };
+
+    const handleBookingClick = async (game) => {
+        const userId = localStorage.getItem('userId'); // ตรวจสอบ userId ใน localStorage
+
+        if (!userId) {
+            alert("Please log in to book a board game.");
+            return;
+        }
+
+        // if (!game || !game.boardgame_id) {
+        //     alert("Game ID is missing.");
+        //     return;
+        // }
+
+        // try {
+        //     const response = await axios.post(`http://localhost:8000/reserve/createReservation`, {
+        //         gameID: game.boardgame_id,
+        //         userID: userId,
+        //     }, { withCredentials: true });
+
+        //     if (response.data.status === 'success') {
+        //         alert('Reservation created successfully');
+        //         setSelectedGame(null); // ปิด modal
+        //     } else {
+        //         alert(`Reservation failed: ${response.data.message || "Unknown error"}`);
+        //     }
+        // } catch (error) {
+        //     console.error('Error creating reservation:', error.response?.data || error.message);
+        //     alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
+        // }
     };
 
     const handleSearchChange = (e) => {
@@ -93,7 +149,7 @@ function Home() {
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
         setShowRecommended(false);
-        setSearched(true); // อัปเดตสถานะว่าได้ทำการค้นหาแล้ว
+        setIsSearching(true); // ตั้งค่า isSearching เป็น true เมื่อเริ่มค้นหา
         try {
             const response = await axios.get('http://localhost:8000/boardgames', {
                 params: {
@@ -107,11 +163,9 @@ function Home() {
         } catch (error) {
             console.error('Error fetching boardgames:', error);
             setBoardgames([]); // ตั้งค่าเป็นอาร์เรย์ว่างในกรณีที่เกิดข้อผิดพลาด
+        } finally {
+            setIsSearching(false); // ตั้งค่า isSearching เป็น false เมื่อการค้นหาเสร็จสิ้น
         }
-    };
-
-    const toggleHourDropdown = () => {
-        setIsHourOpen(!isHourOpen);
     };
 
     const toggleCategoryDropdown = () => {
@@ -126,28 +180,9 @@ function Home() {
         setIsPlayersOpen(!isPlayersOpen);
     };
 
-    const handleHourSelect = (hour) => {
-        setSelectedHour(hour);
-
-        switch (hour) {
-            case '1 Hour':
-                setHour('1');
-                break;
-            case '2 Hours':
-                setHour('2');
-                break;
-            case '3 Hours':
-                setHour('3');
-                break;
-            default:
-                setHour('');
-        }
-        setIsHourOpen(false);
-    };
-
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
-
+    
         switch (category) {
             case 'Family':
                 setCategoryId('1');
@@ -171,20 +206,14 @@ function Home() {
         setSelectedLevel(level);
 
         switch (level) {
-            case 'Level 1':
-                setLevel('1');
+            case 'Easy':
+                setLevel('easy');
                 break;
-            case 'Level 2':
-                setLevel('2');
+            case 'Medium':
+                setLevel('medium');
                 break;
-            case 'Level 3':
-                setLevel('3');
-                break;
-            case 'Level 4':
-                setLevel('4');
-                break;
-            case 'Level 5':
-                setLevel('5');
+            case 'Hard':
+                setLevel('hard');
                 break;
             default:
                 setLevel('');
@@ -226,41 +255,6 @@ function Home() {
         fetchBoardgames();
     };
 
-    const handleConfirmClick = async () => {
-        const token = localStorage.getItem('token'); // หรือวิธีการอื่นในการรับ token
-        if (!token) {
-            alert("Please log in to borrow a board game.");
-            return;
-        }
-
-        if (selectedGame) {
-            await borrowSubmit(selectedGame.boardgame_id, token);
-            setSelectedGame(null);
-        }
-    };
-
-    const borrowSubmit = async (boardgameId, token) => {
-        try {
-            let res = await axios.post(
-                'http://localhost:8000/br',
-                { boardgame_id: boardgameId },
-                {
-                    withCredentials: true,
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-            console.log(`Borrow request sent for boardgame ID: ${boardgameId}`);
-            console.log("API Response:", res);
-            if (res.data.status == "success") {
-                alert("Borrow request sent successfully");
-            }
-        } catch (error) {
-            console.error("Error submitting borrow request:", error);
-        }
-    };
-
     return (
         <div>
             <Navbar />
@@ -291,7 +285,8 @@ function Home() {
                                 {isCategoryOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleCategorySelect('Strategy')}>Strategy</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleCategorySelect('Category')}>Category</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Strategy')}>Strategy</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Family')}>Family</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Kids')}>Kids</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleCategorySelect('Party')}>Party</li>
@@ -307,11 +302,10 @@ function Home() {
                                 {isLevelOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 1')}>Level 1</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 2')}>Level 2</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 3')}>Level 3</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 4')}>Level 4</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 5')}>Level 5</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleLevelSelect('Level')}>Level</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 1')}>Easy</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 2')}>Medium</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 5')}>Hard</li>
                                         </ul>
                                     </div>
                                 )}
@@ -324,7 +318,8 @@ function Home() {
                                 {isPlayersOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handlePlayersSelect('1 Players')}>1 Players</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handlePlayersSelect('2 Players')}>Players</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('1 Players')}>1 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('2 Players')}>2 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('3 Players')}>3 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('4 Players')}>4 Players</li>
@@ -399,61 +394,27 @@ function Home() {
                                 <div className="flex row gap-4 mt-4">
                                     <p className="text-lg">Status:</p>
                                     <p className={`text-lg font-semibold ${status === 'available' ? 'text-green-500' : 'text-red-500'}`}>
-                                        {status}
+                                        {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
                                 </div>
-                                <p className="text-lg pt-2 pb-2">Borrow</p>
-                                <div className="relative">
-                                    <button className="btn-custom" onClick={toggleHourDropdown}>
-                                        {selectedHour}
-                                        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                                <div className="flex flex-col gap-4 mt-4">
+                                    {/* ปุ่มสำหรับ Borrow */}
+                                    <button
+                                        className="btn-search"
+                                        onClick={() => handleBorrowClick(selectedGame)}
+                                    >
+                                        Borrow
                                     </button>
-                                    {isHourOpen && (
-                                        <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
-                                            <ul>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('2 Hours')}>2 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('3 Hours')}>3 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('4 Hours')}>4 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleHourSelect('5 Hours')}>5 Hours</li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-4 pb-2 pt-2">
-                                    <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                                    <p className="mx-2">or</p>
-                                    <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                                </div>
-                                <p className="text-lg pb-2">Booking</p>
-                                {/* ช่องอินพุทวันเดือนปีที่ต้องการจองแบบ __DD / __MM / __ YY */}
-                                <div className="flex items-center gap-2 pt-2">
-                                    <input
-                                        type="text"
-                                        placeholder="DD"
-                                        maxLength="2"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
-                                    <span>/</span>
-                                    <input
-                                        type="text"
-                                        placeholder="MM"
-                                        maxLength="2"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
-                                    <span>/</span>
-                                    <input
-                                        type="text"
-                                        placeholder="YY"
-                                        maxLength="2"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
+
+                                    {/* ปุ่มสำหรับ Booking */}
+                                    <button
+                                        className="btn-custom"
+                                        onClick={() => handleBookingClick(selectedGame)}
+                                    >
+                                        Booking
+                                    </button>
                                 </div>
                                 <div className="flex justify-end gap-3 mt-4">
-                                    <button className="btn-search" onClick={handleConfirmClick}>Confirm</button>
                                     <button
                                         className="btn-custom"
                                         onClick={() => setSelectedGame(null)}
@@ -475,10 +436,9 @@ function Home() {
                                         <p className="text-xl font-semibold ml-5">{game.boardgame_name}</p>
                                         <p className="text-black ml-5">{game.category_name}</p>
                                         <p className="text-black ml-5">level : {game.level}</p>
-                                        <p className="text-black ml-5">players : {game.playerCounts} persons</p>
                                         <div className="flex justify-between gap-4 items-center ml-5 mr-2">
                                             <div>
-                                                <p className="text-black" style={{ marginTop: -14 }}>borrowed times : {game.borrowedTimes}</p>
+                                                <p className="text-black" style={{ marginTop: -14 }}>players : {game.playerCounts} persons</p>
                                             </div>
                                             <button
                                                 className="btn-search"
@@ -491,7 +451,7 @@ function Home() {
                                 </div>
                             ))
                         ) : (
-                            searched && <p className="text-2xl font-semibold text-black opacity-50">No results</p>
+                            isSearching && <p className="text-2xl font-semibold text-black opacity-50">No results</p>
                         )}
                     </div>
                 </div>

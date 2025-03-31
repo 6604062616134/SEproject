@@ -103,17 +103,71 @@ function Homelogin() {
         }
     };
 
-    const handleBorrowClick = (boardgame) => {
-        console.log("Selected Boardgame in Borrow Click:", boardgame);
+    const handleBorrowClick = async (game) => {
+        const userId = localStorage.getItem('userId');
 
-        if (!boardgame || !boardgame.boardgame_id) {
-            console.error("Error: Boardgame ID is missing", boardgame);
-            alert("Error: Boardgame ID is missing.");
+        if (!userId) {
+            alert("User ID not found. Please log in.");
             return;
         }
 
-        setSelectedGame(boardgame);
-        fetchGameStatus(boardgame.boardgame_id);
+        if (!game || !game.boardgame_id) {
+            alert("Game ID is missing.");
+            return;
+        }
+
+        try {
+            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+                gameID: game.boardgame_id,
+                userID: userId,
+                status: 'borrowed',
+            }, { withCredentials: true });
+
+            console.log("API Response:", response.data);
+
+            if (response.data.status === 'success') {
+                alert('Borrow request sent successfully');
+                setSelectedGame(null); // ปิด modal
+            } else {
+                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
+            }
+        } catch (error) {
+            console.error('Error submitting borrow request:', error.response?.data || error.message);
+            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const handleBookingClick = async (game) => {
+        const userId = localStorage.getItem('userId');
+
+        if (!userId) {
+            alert("User ID not found. Please log in.");
+            return;
+        }
+
+        if (!game || !game.boardgame_id) {
+            alert("Game ID is missing.");
+            return;
+        }
+
+        try {
+            const response = await axios.post(`http://localhost:8000/reserve/createReservation`, {
+                gameID: game.boardgame_id,
+                userID: userId,
+            }, { withCredentials: true });
+
+            console.log("API Response:", response.data);
+
+            if (response.data.status === 'success') {
+                alert('Reservation created successfully');
+                setSelectedGame(null); // ปิด modal
+            } else {
+                alert(`Reservation failed: ${response.data.message || "Unknown error"}`);
+            }
+        } catch (error) {
+            console.error('Error creating reservation:', error.response?.data || error.message);
+            alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
+        }
     };
 
     const handleSearchChange = (e) => {
@@ -141,6 +195,10 @@ function Homelogin() {
 
     const togglePlayersDropdown = () => {
         setIsPlayersOpen(!isPlayersOpen);
+    };
+
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
     };
 
     const handleHourSelect = (hour) => {
@@ -173,7 +231,7 @@ function Homelogin() {
 
     const handleCategorySelect = (category) => {
         setSelectedCategory(category);
-
+    
         switch (category) {
             case 'Family':
                 setCategoryId('1');
@@ -197,20 +255,14 @@ function Homelogin() {
         setSelectedLevel(level);
 
         switch (level) {
-            case 'Level 1':
-                setLevel('1');
+            case 'Easy':
+                setLevel('easy');
                 break;
-            case 'Level 2':
-                setLevel('2');
+            case 'Medium':
+                setLevel('medium');
                 break;
-            case 'Level 3':
-                setLevel('3');
-                break;
-            case 'Level 4':
-                setLevel('4');
-                break;
-            case 'Level 5':
-                setLevel('5');
+            case 'Hard':
+                setLevel('hard');
                 break;
             default:
                 setLevel('');
@@ -252,95 +304,84 @@ function Homelogin() {
         fetchBoardgames();
     };
 
-    const handleConfirmClick = async () => {
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            alert("Please log in to borrow a board game.");
-            return;
-        }
+    // const handleConfirmBorrowClick = async () => {
+    //     const userId = localStorage.getItem('userId');
+    //     if (!userId) {
+    //         alert("Please log in to borrow a board game.");
+    //         return;
+    //     }
 
-        // ตรวจสอบสถานะล่าสุดจากฐานข้อมูล
-        try {
-            const response = await axios.get(`http://localhost:8000/br/getStatus/${selectedGame.boardgame_id}`);
-            
-            //const latestStatus = response.data.data[0]?.status;
-    
-            // if (latestStatus === 'reserved' || latestStatus === 'returning') {
-            //     alert("This game is already borrowed, please reserve it instead.");
-            //     return;
-            // }
-    
-            const day = document.querySelector('input[placeholder="DD"]').value;
-            const month = document.querySelector('input[placeholder="MM"]').value;
-            const year = document.querySelector('input[placeholder="YY"]').value;
+    //     // ตรวจสอบสถานะล่าสุดจากฐานข้อมูล
+    //     try {
+    //         const response = await axios.get(`http://localhost:8000/br/getStatus/${selectedGame.boardgame_id}`);
 
-            if (day && month && year) {
-                try {
-                    const reservationResponse = await axios.post(`http://localhost:8000/reserve/createReservation`, {
-                        gameID: selectedGame.boardgame_id,
-                        userID: userId,
-                        reservationDate: `${year}-${month}-${day}` // ส่งวันที่ในรูปแบบ YYYY-MM-DD
-                    }, { withCredentials: true });
-    
-                    if (reservationResponse.data.status === 'success') {
-                        alert('Reservation created successfully');
-                        setSelectedGame(null);
-                    } else {
-                        alert(`Reservation failed: ${reservationResponse.data.message || "Unknown error"}`);
-                    }
-                } catch (error) {
-                    console.error('Error creating reservation:', error.response?.data || error.message);
-                    alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
-                }
-            } else if (selectedHour && selectedHour !== 'Select Hour') {
-                // เรียกฟังก์ชัน borrowSubmit
-                await borrowSubmit(selectedGame);
-                setSelectedGame(null);
-            } else {
-                alert("Please select an hour or fill in the booking date (DD/MM/YY).");
-            }
-        } catch (error) {
-            console.error("Error fetching latest status:", error);
-            alert("Unable to verify the game status. Please try again later.");
-        }
-    };
+    //         //const latestStatus = response.data.data[0]?.status;
 
-    const borrowSubmit = async (game) => {
-        const userId = localStorage.getItem('userId');
+    //         // if (latestStatus === 'reserved' || latestStatus === 'returning') {
+    //         //     alert("This game is already borrowed, please reserve it instead.");
+    //         //     return;
+    //         // }
 
-        if (!userId) {
-            alert("User ID not found. Please log in.");
-            return;
-        }
 
-        if (!game || !game.boardgame_id) {
-            alert("Game ID is missing.");
-            return;
-        }
+    //         try {
+    //             const reservationResponse = await axios.post(`http://localhost:8000/reserve/createReservation`, {
+    //                 gameID: selectedGame.boardgame_id,
+    //                 userID: userId
+    //             }, { withCredentials: true });
 
-        try {
-            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
-                gameID: game.boardgame_id,
-                userID: userId,
-                status: 'borrowed',
-            }, { withCredentials: true });
+    //             if (reservationResponse.data.status === 'success') {
+    //                 alert('Reservation created successfully');
+    //                 setSelectedGame(null);
+    //             } else {
+    //                 alert(`Reservation failed: ${reservationResponse.data.message || "Unknown error"}`);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error creating reservation:', error.response?.data || error.message);
+    //             alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
+    //         }
 
-            console.log("API Response:", response.data);
+    //     } catch (error) {
+    //         console.error("Error fetching latest status:", error);
+    //         alert("Unable to verify the game status. Please try again later.");
+    //     }
+    // };
 
-            if (response.data.status === 'success') {
-                alert('Borrow request sent successfully');
+    // const borrowSubmit = async (game) => {
+    //     const userId = localStorage.getItem('userId');
 
-                if (hour) {
-                    await createReturnDate(game.boardgame_id, userId, hour);
-                }
-            } else {
-                alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
-            }
-        } catch (error) {
-            console.error('Error submitting borrow request:', error.response?.data || error.message);
-            alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
-        }
-    };
+    //     if (!userId) {
+    //         alert("User ID not found. Please log in.");
+    //         return;
+    //     }
+
+    //     if (!game || !game.boardgame_id) {
+    //         alert("Game ID is missing.");
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+    //             gameID: game.boardgame_id,
+    //             userID: userId,
+    //             status: 'borrowed',
+    //         }, { withCredentials: true });
+
+    //         console.log("API Response:", response.data);
+
+    //         if (response.data.status === 'success') {
+    //             alert('Borrow request sent successfully');
+
+    //             if (hour) {
+    //                 await createReturnDate(game.boardgame_id, userId, hour);
+    //             }
+    //         } else {
+    //             alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error submitting borrow request:', error.response?.data || error.message);
+    //         alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
+    //     }
+    // };
 
     const createReturnDate = async (gameID, userID, hour) => {
         try {
@@ -364,42 +405,38 @@ function Homelogin() {
         }
     };
 
-    const reservedSubmit = async (game) => {
-        // เมื่อมีการอินพุทข้อมูลจองบอร์ดเกมให้เรียกใช้ฟังก์ชันนี้
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            alert("User ID not found. Please log in.");
-            return;
-        }
-        if (!game || !game.boardgame_id) {
-            alert("Game ID is missing.");
-            return;
-        }
+    // const reservedSubmit = async (game) => {
+    //     // เมื่อมีการอินพุทข้อมูลจองบอร์ดเกมให้เรียกใช้ฟังก์ชันนี้
+    //     const userId = localStorage.getItem('userId');
+    //     if (!userId) {
+    //         alert("User ID not found. Please log in.");
+    //         return;
+    //     }
+    //     if (!game || !game.boardgame_id) {
+    //         alert("Game ID is missing.");
+    //         return;
+    //     }
 
-        try {
-            const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
-                gameID: game.boardgame_id,
-                userID: userId,
-                status: 'reserved',
-            }, { withCredentials: true });
+    //     try {
+    //         const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
+    //             gameID: game.boardgame_id,
+    //             userID: userId,
+    //             status: 'reserved',
+    //         }, { withCredentials: true });
 
-            console.log("API Response:", response.data);
+    //         console.log("API Response:", response.data);
 
-            if (response.data.status === 'success') {
-                alert('Reservation request sent successfully');
-            } else {
-                alert(`Reservation request failed: ${response.data.message || "Unknown error"}`);
-            }
-        }
-        catch (error) {
-            console.error('Error submitting reservation request:', error.response?.data || error.message);
-            alert(`Error submitting reservation request: ${error.response?.data?.message || error.message}`);
-        }
-    };
-
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
+    //         if (response.data.status === 'success') {
+    //             alert('Reservation request sent successfully');
+    //         } else {
+    //             alert(`Reservation request failed: ${response.data.message || "Unknown error"}`);
+    //         }
+    //     }
+    //     catch (error) {
+    //         console.error('Error submitting reservation request:', error.response?.data || error.message);
+    //         alert(`Error submitting reservation request: ${error.response?.data?.message || error.message}`);
+    //     }
+    // };
 
     return (
         <div>
@@ -431,7 +468,8 @@ function Homelogin() {
                                 {isCategoryOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleCategorySelect('Strategy')}>Strategy</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleCategorySelect('Category')}>Category</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Strategy')}>Strategy</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Family')}>Family</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleCategorySelect('Kids')}>Kids</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleCategorySelect('Party')}>Party</li>
@@ -447,11 +485,10 @@ function Homelogin() {
                                 {isLevelOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 1')}>Level 1</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 2')}>Level 2</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 3')}>Level 3</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 4')}>Level 4</li>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 5')}>Level 5</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleLevelSelect('Level')}>Level</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 1')}>Easy</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleLevelSelect('Level 2')}>Medium</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleLevelSelect('Level 5')}>Hard</li>
                                         </ul>
                                     </div>
                                 )}
@@ -464,7 +501,8 @@ function Homelogin() {
                                 {isPlayersOpen && (
                                     <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
                                         <ul>
-                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handlePlayersSelect('1 Players')}>1 Players</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handlePlayersSelect('2 Players')}>Players</li>
+                                            <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('1 Players')}>1 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('2 Players')}>2 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('3 Players')}>3 Players</li>
                                             <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handlePlayersSelect('4 Players')}>4 Players</li>
@@ -542,59 +580,24 @@ function Homelogin() {
                                         {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
                                 </div>
-                                <p className="text-lg pt-2 pb-2 font-semibold">Borrow</p>
-                                <div className="relative">
-                                    <button className="btn-custom" onClick={toggleHourDropdown}>
-                                        {selectedHour}
-                                        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                                <div className="flex flex-col gap-4 mt-4">
+                                    {/* ปุ่มสำหรับ Borrow */}
+                                    <button
+                                        className="btn-search"
+                                        onClick={() => handleBorrowClick(selectedGame)}
+                                    >
+                                        Borrow
                                     </button>
-                                    {isHourOpen && (
-                                        <div className="absolute mt-2 w-48 bg-[#ececec] border border-black rounded-3xl shadow-lg" style={{ zIndex: 10 }}>
-                                            <ul>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-tl-3xl hover:rounded-tr-3xl cursor-pointer" onClick={() => handleHourSelect('Select hour')}>Select Hour</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('1 Hour')}>1 Hour</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('2 Hours')}>2 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('3 Hours')}>3 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white cursor-pointer" onClick={() => handleHourSelect('4 Hours')}>4 Hours</li>
-                                                <li className="px-4 py-2 hover:bg-black hover:text-white hover:rounded-bl-3xl hover:rounded-br-3xl cursor-pointer" onClick={() => handleHourSelect('5 Hours')}>5 Hours</li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-4 pb-2 pt-2">
-                                    <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                                    <p className="mx-2">or</p>
-                                    <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
-                                </div>
-                                <p className="text-lg pb-2 font-semibold">Booking</p>
-                                {/* ช่องอินพุทวันเดือนปีที่ต้องการจองแบบ __DD / __MM / __ YY */}
-                                <div className="flex items-center gap-2 pt-2">
-                                    <input
-                                        type="text"
-                                        placeholder="DD"
-                                        maxLength="2"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
-                                    <span>/</span>
-                                    <input
-                                        type="text"
-                                        placeholder="MM"
-                                        maxLength="2"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
-                                    <span>/</span>
-                                    <input
-                                        type="text"
-                                        placeholder="YY"
-                                        maxLength="4"
-                                        className="w-10 text-center"
-                                        style={{ border: 'none', borderBottom: '1px solid black', backgroundColor: '#f0f0f0' }}
-                                    />
+
+                                    {/* ปุ่มสำหรับ Booking */}
+                                    <button
+                                        className="btn-custom"
+                                        onClick={() => handleBookingClick(selectedGame)}
+                                    >
+                                        Booking
+                                    </button>
                                 </div>
                                 <div className="flex justify-end gap-3 mt-4">
-                                    <button className="btn-search" onClick={handleConfirmClick}>Confirm</button>
                                     <button
                                         className="btn-custom"
                                         onClick={() => setSelectedGame(null)}
