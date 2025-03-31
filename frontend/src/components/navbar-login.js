@@ -42,18 +42,31 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
 
     const fetchNotification = async () => {
         try {
-            //เรียกเอพีไอเส้น getnotires เพื่อดึงข้อมูลการจอง
             const userId = localStorage.getItem('userId');
             if (!userId) {
                 console.error('User ID not found in localStorage');
                 return;
             }
 
-            const response = await axios.get(`http://localhost:8000/notifications/getnotires/${userId}`, { withCredentials: true });
-            const notificationsData = response.data.data;
-            setNotifications(notificationsData);
-            setHasNewNotification(notificationsData.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
+            // ดึงข้อมูลการแจ้งเตือนการจอง
+            const reserveResponse = await axios.get(`http://localhost:8000/notifications/getnotires/${userId}`, { withCredentials: true });
+            const reserveNotifications = reserveResponse.data.data.map(notification => ({
+                ...notification,
+                type: 'Reserve'
+            }));
 
+            // ดึงข้อมูลการแจ้งเตือนการคืน
+            const returnResponse = await axios.get(`http://localhost:8000/notifications/getnotireturn/${userId}`, { withCredentials: true });
+            const returnNotifications = returnResponse.data.data.map(notification => ({
+                ...notification,
+                type: 'Returning'
+            }));
+
+            // รวมการแจ้งเตือนทั้งสองประเภทและเรียงลำดับตามวันที่ล่าสุดก่อน
+            const allNotifications = [...reserveNotifications, ...returnNotifications].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            setNotifications(allNotifications);
+            setHasNewNotification(allNotifications.length > 0); // เช็คว่ามีการแจ้งเตือนใหม่หรือไม่
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 alert('Session expired. Please log in again.');
@@ -101,7 +114,7 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                 alert('User ID not found. Please log in again.');
                 return;
             }
-    
+
             await axios.post('http://localhost:8000/reports/createReport', { userID, message: reportMessage }, { withCredentials: true });
             alert('Report submitted successfully!');
             setReportMessage('');
@@ -137,13 +150,14 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                                         <li key={index} className="border-b py-2">
                                             {notification.type === 'Returning' ? (
                                                 <>
-                                                    <p>Game: {notification.boardgame_name}</p>
+                                                    <p>Game: {notification.gameName}</p>
                                                     <p>Borrowed Date: {new Date(notification.borrowingDate).toLocaleString()}</p>
-                                                    <p>Return Date: {new Date(notification.borrow_return_date).toLocaleString()}</p>
+                                                    <p>Return Date: {new Date(notification.returningDate).toLocaleString()}</p>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <p>Game: {notification.boardgame_name}</p>
+                                                    <p>Game: {notification.gameName}</p>
+                                                    <p>Category: {notification.categoryName}</p>
                                                     <p>Status: {notification.status}</p>
                                                 </>
                                             )}

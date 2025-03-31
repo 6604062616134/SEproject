@@ -542,7 +542,7 @@ function Homelogin() {
                                         {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
                                 </div>
-                                <p className="text-lg pt-2 pb-2">Borrow</p>
+                                <p className="text-lg pt-2 pb-2 font-semibold">Borrow</p>
                                 <div className="relative">
                                     <button className="btn-custom" onClick={toggleHourDropdown}>
                                         {selectedHour}
@@ -566,7 +566,7 @@ function Homelogin() {
                                     <p className="mx-2">or</p>
                                     <hr className="flex-grow" style={{ height: '0.2px', backgroundColor: 'black', border: 'none' }} />
                                 </div>
-                                <p className="text-lg pb-2">Booking</p>
+                                <p className="text-lg pb-2 font-semibold">Booking</p>
                                 {/* ช่องอินพุทวันเดือนปีที่ต้องการจองแบบ __DD / __MM / __ YY */}
                                 <div className="flex items-center gap-2 pt-2">
                                     <input

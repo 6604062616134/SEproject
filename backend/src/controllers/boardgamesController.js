@@ -10,7 +10,7 @@ const BoardgamesController = {
             const categoryID = req.query.categoryID || '';
     
             let where = [];
-            let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, a.borrowedTimes, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`;
+            let sql = `SELECT a.id as boardgame_id, a.name as boardgame_name, a.playerCounts, a.level, b.name as category_name FROM boardgames a LEFT JOIN category b ON a.categoryID = b.id`;
             let params = [];
     
             if (name) {
@@ -24,10 +24,6 @@ const BoardgamesController = {
             if (playerCounts) {
                 where.push(`a.playerCounts LIKE ?`);
                 params.push(`%${playerCounts}%`);
-            }
-            if (borrowedTimes) {
-                where.push(`a.borrowedTimes LIKE ?`);
-                params.push(`%${borrowedTimes}%`);
             }
             if (categoryID) {
                 where.push(`a.categoryID = ?`);
@@ -140,7 +136,7 @@ const BoardgamesController = {
 
     async getRecommendedBoardgames(req, res) {
         try {
-            const sql = `SELECT a.id AS boardgame_id, a.name AS boardgame_name, a.level, a.playerCounts, a.borrowedTimes, b.name AS category_name 
+            const sql = `SELECT a.id AS boardgame_id, a.name AS boardgame_name, a.level, a.playerCounts, b.name AS category_name 
                          FROM boardgames a 
                          LEFT JOIN category b ON a.categoryID = b.id
                          WHERE a.isRecommended = 1`;
