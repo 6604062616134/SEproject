@@ -209,9 +209,9 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                         <p className="text-white text-xl font-semibold">{username}</p>
                         <button onClick={handleNotificationClick} className="relative bg-transparent border-none cursor-pointer">
                             <FontAwesomeIcon icon={faBell} />
-                            {hasNewNotification && (
+                            {/* {hasNewNotification && (
                                 <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center"></span>
-                            )}
+                            )} */}
                         </button>
                         {isNotificationOpen && (
                             <div
@@ -311,10 +311,10 @@ function NavbarLogin({ isMenuOpen, toggleMenu }) {
                     </button>
                     <p className="block px-6 text-black font-semibold mt-4">Contact us</p>
                     <div className="flex px-6 mt-2 gap-4">
-                        <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
+                        <a href="https://www.facebook.com/Central.Library.Kmutnb/?locale=th_TH" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
                             <FontAwesomeIcon icon={faFacebook} />
                         </a>
-                        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
+                        <a href="https://www.instagram.com/library.kmutnb/" target="_blank" rel="noopener noreferrer" className="text-black text-3xl">
                             <FontAwesomeIcon icon={faInstagram} />
                         </a>
                     </div>

@@ -78,66 +78,8 @@ function Home() {
     };
 
     const handleBorrowClick = async (game) => {
-        const userId = localStorage.getItem('userId'); // ตรวจสอบ userId ใน localStorage
-
-        if (!userId) {
-            alert("Please log in to borrow a board game.");
-            return;
-        }
-
-        // if (!game || !game.boardgame_id) {
-        //     alert("Game ID is missing.");
-        //     return;
-        // }
-
-        // try {
-        //     const response = await axios.put(`http://localhost:8000/br/transactions/update`, {
-        //         gameID: game.boardgame_id,
-        //         userID: userId,
-        //         status: 'borrowed',
-        //     }, { withCredentials: true });
-
-        //     if (response.data.status === 'success') {
-        //         alert('Borrow request sent successfully');
-        //         setSelectedGame(null); // ปิด modal
-        //     } else {
-        //         alert(`Borrow request failed: ${response.data.message || "Unknown error"}`);
-        //     }
-        // } catch (error) {
-        //     console.error('Error submitting borrow request:', error.response?.data || error.message);
-        //     alert(`Error submitting borrow request: ${error.response?.data?.message || error.message}`);
-        // }
-    };
-
-    const handleBookingClick = async (game) => {
-        const userId = localStorage.getItem('userId'); // ตรวจสอบ userId ใน localStorage
-
-        if (!userId) {
-            alert("Please log in to book a board game.");
-            return;
-        }
-
-        // if (!game || !game.boardgame_id) {
-        //     alert("Game ID is missing.");
-        //     return;
-        // }
-
-        // try {
-        //     const response = await axios.post(`http://localhost:8000/reserve/createReservation`, {
-        //         gameID: game.boardgame_id,
-        //         userID: userId,
-        //     }, { withCredentials: true });
-
-        //     if (response.data.status === 'success') {
-        //         alert('Reservation created successfully');
-        //         setSelectedGame(null); // ปิด modal
-        //     } else {
-        //         alert(`Reservation failed: ${response.data.message || "Unknown error"}`);
-        //     }
-        // } catch (error) {
-        //     console.error('Error creating reservation:', error.response?.data || error.message);
-        //     alert(`Error creating reservation: ${error.response?.data?.message || error.message}`);
-        // }
+        alert("Please log in to borrow/reserve a board game.");
+        return;
     };
 
     const handleSearchChange = (e) => {

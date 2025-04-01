@@ -579,12 +579,12 @@ function Homelogin() {
                                     &times;
                                 </button>
                                 <h3 className="font-bold text-xl">{selectedGame.boardgame_name}</h3>
-                                <div className="flex row gap-4 mt-4">
+                                {/* <div className="flex row gap-4 mt-4">
                                     <p className="text-lg">Status:</p>
                                     <p className={`text-lg font-semibold ${status === 'available' ? 'text-green-500' : 'text-red-500'}`}>
                                         {status === 'returning' || status === 'reserved' ? 'borrowed' : status}
                                     </p>
-                                </div>
+                                </div> */}
                                 <div className='flex flex-row gap-2 justify-between'>
                                     <p className='text-lg font-semibold mt-2' style={{ position: 'relative', top: '10px' }}>Borrow</p>
                                     {/* ดรอปดาวน์สำหรับเลือกจำนวนชั่วโมง */}

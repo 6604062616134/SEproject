@@ -213,7 +213,17 @@ const BorrowReturnController = {
 
             // เงื่อนไขการจัดการ stock และสถานะ
             if (status === 'borrowed') {
-                if (stock > 0) {
+                if (stock === 0) {
+                    // อัปเดตสถานะเป็น borrowed
+                    const updateBorrowReturnSql = `
+                        UPDATE borrowreturn
+                        SET userID = ?, status = ?, modified = NOW()
+                        WHERE gameID = ?
+                    `;
+                    await db.query(updateBorrowReturnSql, [userID, status, gameID]);
+
+                    return res.status(200).json({ status: 'success', message: 'Status updated to borrowed.' });
+                } else if (stock > 0) {
                     // ลด stock ลง 1
                     const updateStockSql = `
                         UPDATE boardgames
@@ -223,16 +233,6 @@ const BorrowReturnController = {
                     await db.query(updateStockSql, [gameID]);
 
                     return res.status(200).json({ status: 'success', message: 'Stock decreased by 1' });
-                } else if (stock === 0) {
-                    // อัปเดตสถานะเป็น borrowed
-                    const updateBorrowReturnSql = `
-                    UPDATE borrowreturn
-                    SET userID = ?, status = ?, modified = NOW()
-                    WHERE gameID = ?
-                `;
-                    await db.query(updateBorrowReturnSql, [userID, status, gameID]);
-
-                    return res.status(200).json({ status: 'success', message: 'Status updated to borrowed.' });
                 }
             }
 
